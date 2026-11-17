@@ -62,6 +62,12 @@ h3{font-size:16px;font-weight:700}
 .pp{width:56px;height:56px;border-radius:50%;background:var(--card2);border:1px dashed #4A4F51;display:grid;place-items:center;overflow:hidden;color:var(--mute);font-size:24px}
 .pp img{width:100%;height:100%;object-fit:cover}
 .tlink{font-size:12px;color:var(--mute);text-decoration:underline;padding:0}
+.a2hs{display:flex;align-items:center;gap:12px;padding:12px 12px 12px 14px}
+.a2hs b{display:block;font-size:14px}
+.a2hs small{font-size:12px;color:var(--mute)}
+.mbody{color:#C9CCC6;margin:10px 0 20px;line-height:1.5;font-size:15px}
+.mbody ol{padding-left:20px;display:grid;gap:8px;margin-top:8px}
+.mbody .tip{font-size:13px;color:var(--mute);margin-top:12px}
 .demo-note{text-align:center;font-size:13px;color:var(--mute);margin-top:18px}
 
 /* steps */
@@ -375,6 +381,30 @@ function spark(g){
 const steps = n => `<div class="steps">${[1,2,3].map(i=>`<i class="${i<=n?'on':''}"></i>`).join('')}</div>`;
 const quoteFor = n => QUOTES[(n-1) % QUOTES.length];
 
+/* ---------- add to home screen ---------- */
+const A2HS = 'li50-a2hs-hidden';
+const isStandalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+let installEvt = null;
+addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvt = e; });
+addEventListener('appinstalled', () => { installEvt = null; toast('Added to your home screen'); });
+function a2hsHidden(){ try { return localStorage.getItem(A2HS) === '1'; } catch(e){ return false; } }
+function a2hsBanner(){
+  if (isStandalone() || a2hsHidden()) return '';
+  return `<div class="card a2hs">${badge(40)}<div style="flex:1;min-width:0"><b>Add it to your home screen</b><small>Opens like an app. One tap, every day.</small></div>
+    <button class="sbtn" data-a="a2hs">Add</button><button class="x" data-a="a2hs-hide" aria-label="Dismiss">×</button></div>`;
+}
+async function showA2hs(){
+  if (installEvt){ installEvt.prompt(); try { await installEvt.userChoice; } catch(e){} installEvt = null; return; }
+  const relog = '<p class="tip">You\'ll log in once more from the home screen icon, with your crew code and PIN.</p>';
+  const body = isIOS
+    ? `<ol><li>Make sure you're in <b>Safari</b>.</li>
+        <li>Tap the <b>Share</b> button <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="Share icon" style="vertical-align:-3px"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M6 11v9h12v-9"/></svg> (on newer iPhones, tap <b>•••</b> first, then <b>Share</b>).</li>
+        <li>Scroll down and tap <b>Add to Home Screen</b>.</li><li>Tap <b>Add</b>.</li></ol>${relog}`
+    : `<ol><li>Tap the browser menu <b>⋮</b> (top right in Chrome).</li><li>Tap <b>Add to Home screen</b> or <b>Install app</b>.</li><li>Tap <b>Add</b> / <b>Install</b>.</li></ol>${relog}`;
+  modal('Add Locked In 50 to your home screen', body, 'Got it', () => {}, true);
+}
+
 /* ---------- onboarding ---------- */
 function vWelcome(){
   return `<div class="welcome">
@@ -388,6 +418,7 @@ function vWelcome(){
     <button class="btn primary" data-a="go" data-v="join">Start my 50</button>
     <button class="btn ghost" data-a="go" data-v="login">I'm already in</button>
     <p class="built">BUILT BY CARTER</p>
+    ${isStandalone()?'':'<button class="demo-note" data-a="a2hs" style="display:block;margin:14px auto 0;text-decoration:underline">Add to home screen</button>'}
   </div>`;
 }
 function vJoin(){
@@ -464,12 +495,12 @@ function vLogin(){
 /* ---------- main tabs ---------- */
 function tToday(u){
   const t = today(), n = dayNum(u);
-  if (n < 1) return `<div class="card center" style="padding:28px 18px"><div class="eyebrow">Locked in 🔒</div><h2 style="margin:8px 0">Day 1 starts tomorrow</h2>
+  if (n < 1) return `${a2hsBanner()}<div class="card center" style="padding:28px 18px"><div class="eyebrow">Locked in 🔒</div><h2 style="margin:8px 0">Day 1 starts tomorrow</h2>
     <p class="mute" style="margin-bottom:14px">Rest up. Here's what you signed up for.</p>
     <ul class="sumlist" style="text-align:left">${u.items.map(i=>`<li><span>${esc(i.label)}</span>${pips(i.weight)}</li>`).join('')}</ul></div>`;
   if (n > LEN) return tFinished(u);
   const sc = score(u,t), done = u.days[t] || [], q = quoteFor(n);
-  return `<div class="dayhead"><div><div class="eyebrow">Day</div><div class="daynum">${n}<span>/${LEN}</span></div></div>${ring(sc)}</div>
+  return `${a2hsBanner()}<div class="dayhead"><div><div class="eyebrow">Day</div><div class="daynum">${n}<span>/${LEN}</span></div></div>${ring(sc)}</div>
     <div class="track"><i style="width:${n/LEN*100}%"></i></div>
     <div class="pills"><span class="pill">🔥 ${streak(u)} day streak</span><span class="pill">${LEN-n} days to go</span><span class="pill">Avg ${avg(u)}%</span></div>
     <div class="card quote">“${esc(q.t)}”<cite>— ${esc(q.a)}</cite></div>
@@ -522,7 +553,7 @@ function tMe(u){
       ${n>=1&&n<=LEN?`<div class="gl"><input class="input" id="gl-${g.id}" inputmode="decimal" placeholder="Today's ${esc(g.unit||'number')}"><button data-a="log" data-v="${g.id}">Log</button></div>`:''}</div>`; }).join('')}
     <div class="card"><div class="hd"><h3>My list</h3><span class="badge">🔒 Locked</span></div>
       <ul class="sumlist">${u.items.map(i=>`<li><span>${esc(i.label)}</span>${pips(i.weight)}</li>`).join('')}</ul></div>
-    <div class="card"><button class="linkbtn" data-a="logout">Log out</button></div>
+    <div class="card">${isStandalone()?'':'<button class="linkbtn" data-a="a2hs">📲 Add to home screen</button>'}<button class="linkbtn" data-a="logout">Log out</button></div>
     <p class="built" style="text-align:center;margin:8px 0 0">LOCKED IN 50 · BUILT BY CARTER</p>`;
 }
 const ICONS = {
@@ -547,9 +578,9 @@ function render(){
 }
 const val = id => (document.getElementById(id)?.value || '').trim();
 function toast(t){ const el = document.getElementById('toast'); el.textContent = t; el.classList.add('show'); clearTimeout(toast.h); toast.h = setTimeout(()=>el.classList.remove('show'), 2200); }
-function modal(title, body, ok, fn){
+function modal(title, body, ok, fn, solo){
   const m = document.getElementById('modal');
-  m.innerHTML = `<div class="mbox"><h3 style="font-size:19px">${title}</h3><p>${body}</p><div class="mrow"><button class="btn ghost" data-m="x">Cancel</button><button class="btn primary" data-m="ok">${ok}</button></div></div>`;
+  m.innerHTML = `<div class="mbox"><h3 style="font-size:19px">${title}</h3><div class="mbody">${body}</div><div class="mrow">${solo?'':'<button class="btn ghost" data-m="x">Cancel</button>'}<button class="btn primary" data-m="ok">${ok}</button></div></div>`;
   m.classList.add('show');
   m.onclick = e => { const k = e.target.dataset.m; if (k==='ok'){ m.classList.remove('show'); fn(); } else if (k==='x' || e.target===m) m.classList.remove('show'); };
 }
@@ -659,6 +690,8 @@ async function act(a, v, el){
     case 'rm-photo':
       try { await rpc('set_photo', { p_token:tok, p_photo:null }); delete me.photo; toast('Photo removed'); } catch(e){ toast(errMsg(e)); }
       break;
+    case 'a2hs': showA2hs(); return;
+    case 'a2hs-hide': try { localStorage.setItem(A2HS, '1'); } catch(e){} toast('You can still add it from the Progress tab'); break;
     case 'copy-code': {
       const msg = `Join my Locked In 50 crew 🔒 ${location.origin}  Crew code: ${S.group.code}`;
       try { await navigator.clipboard.writeText(msg); toast('Invite copied. Paste it to your mates.'); } catch(e){ toast('Crew code: ' + S.group.code); }
