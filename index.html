@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Locked In 50 · built by Carter</title>
+<link rel="icon" id="fav">
+<meta name="theme-color" content="#0E0F0C">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0E0F0C; --card:#17191A; --card2:#1E2122; --line:#2A2E30;
+  --text:#F2F3EE; --mute:#8D9391; --acc:#C8F542; --ink:#0E0F0C; --hot:#FF7A45;
+  --r:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--text);font-family:'Archivo',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+.wrap{max-width:460px;margin:0 auto;min-height:100dvh;padding:20px 18px 110px}
+.mute{color:var(--mute)}
+.eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);font-weight:600}
+h2{font-family:'Archivo Black','Arial Black',system-ui,sans-serif;font-size:26px;line-height:1.1;letter-spacing:-.01em}
+h3{font-size:16px;font-weight:700}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:14px}
+.center{text-align:center}
+.btn{display:block;width:100%;padding:15px;border-radius:14px;font-weight:700;font-size:16px;text-align:center}
+.btn.primary{background:var(--acc);color:var(--ink)}
+.btn.primary:disabled{opacity:.35;cursor:not-allowed}
+.btn.ghost{border:1px solid var(--line);color:var(--text)}
+.btn+.btn{margin-top:10px}
+.row{display:flex;gap:10px;align-items:center}
+.row>.btn{margin-top:0}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:13px;color:var(--mute);margin-bottom:6px;font-weight:500}
+.input{width:100%;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:13px 14px;font-size:16px;outline:none}
+.input:focus{border-color:var(--acc)}
+.err{color:var(--hot);font-size:14px;margin:-4px 0 12px}
+
+/* welcome */
+.welcome{display:flex;flex-direction:column;min-height:calc(100dvh - 130px);justify-content:center}
+.logo{font-family:'Archivo Black','Arial Black',system-ui,sans-serif;font-size:64px;line-height:.9;letter-spacing:-.03em}
+.logo span{display:block;font-size:150px;color:var(--acc);letter-spacing:-.06em}
+.tag{font-size:19px;line-height:1.4;margin:22px 0 26px;color:#D7DAD3}
+.rules{display:grid;gap:10px;margin-bottom:30px}
+.rule{display:flex;gap:12px;align-items:flex-start;font-size:15px;color:#C9CCC6}
+.rule b{flex:0 0 26px;height:26px;border-radius:8px;background:var(--card2);border:1px solid var(--line);display:grid;place-items:center;font-size:13px;color:var(--acc)}
+.lockup{display:flex;align-items:center;gap:18px}
+.lname{font-family:'Archivo Black','Arial Black',system-ui,sans-serif;font-size:44px;line-height:.92;letter-spacing:-.02em}
+.lname span{display:block;font-size:88px;color:var(--acc);letter-spacing:-.05em}
+.built{font-size:12px;font-weight:700;letter-spacing:.42em;color:var(--mute);text-align:center;margin-top:22px}
+.avedit{position:relative;cursor:pointer;display:block;flex:0 0 auto}
+.avedit .cam{position:absolute;right:-2px;bottom:-2px;width:26px;height:26px;border-radius:50%;background:var(--acc);color:var(--ink);display:grid;place-items:center;border:2px solid var(--bg)}
+.field .photopick{display:flex;align-items:center;gap:12px;cursor:pointer;font-weight:600;color:var(--text);font-size:15px;margin:0}
+.pp{width:56px;height:56px;border-radius:50%;background:var(--card2);border:1px dashed #4A4F51;display:grid;place-items:center;overflow:hidden;color:var(--mute);font-size:24px}
+.pp img{width:100%;height:100%;object-fit:cover}
+.tlink{font-size:12px;color:var(--mute);text-decoration:underline;padding:0}
+.demo-note{text-align:center;font-size:13px;color:var(--mute);margin-top:18px}
+
+/* steps */
+.steps{display:flex;gap:6px;margin:4px 0 22px}
+.steps i{flex:1;height:4px;border-radius:4px;background:var(--line)}
+.steps i.on{background:var(--acc)}
+.sub{color:var(--mute);font-size:15px;line-height:1.45;margin:8px 0 18px}
+.ditem{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 10px 10px 14px;margin-bottom:8px}
+.ditem .lbl{flex:1;font-weight:600;font-size:15px}
+.seg{display:flex;background:var(--card2);border-radius:10px;padding:3px;gap:2px}
+.seg button{padding:6px 9px;border-radius:8px;font-size:12px;font-weight:600;color:var(--mute)}
+.seg button.on{background:var(--acc);color:var(--ink)}
+.x{width:30px;height:30px;border-radius:8px;color:var(--mute);font-size:18px}
+.x:hover{background:var(--card2);color:var(--text)}
+.addrow{display:flex;gap:8px;margin:12px 0}
+.addrow .input{flex:1}
+.addrow button{padding:0 18px;border-radius:12px;background:var(--card2);border:1px solid var(--line);font-weight:700}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
+.chip{padding:8px 12px;border-radius:999px;border:1px dashed var(--line);font-size:13px;color:#C9CCC6}
+.chip:hover{border-color:var(--acc);color:var(--acc)}
+.count{font-size:13px;color:var(--mute);margin-bottom:10px}
+.count b{color:var(--acc)}
+.gcard .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.gcard .field{margin-bottom:10px}
+.toggle{display:flex;align-items:center;gap:10px;font-size:14px;color:#C9CCC6;margin-top:4px}
+.toggle input{width:20px;height:20px;accent-color:var(--acc)}
+.note{font-size:13px;color:var(--mute);line-height:1.4;margin-top:8px}
+.footer{position:fixed;left:0;right:0;bottom:0;background:linear-gradient(transparent,var(--bg) 30%);padding:26px 18px 18px}
+.footer .in{max-width:460px;margin:0 auto}
+.opt{flex:1;padding:14px;border-radius:14px;border:1px solid var(--line);text-align:center;font-weight:600}
+.opt.on{border-color:var(--acc);color:var(--acc);background:rgba(200,245,66,.06)}
+.sumlist{list-style:none}
+.sumlist li{padding:9px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:10px;font-size:15px}
+.sumlist li:last-child{border:0}
+.member{display:flex;align-items:center;gap:12px;width:100%;padding:12px;border-radius:14px;border:1px solid var(--line);margin-bottom:8px;text-align:left;font-weight:600}
+.member.on{border-color:var(--acc)}
+
+/* main */
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.top .crew{font-family:'Archivo Black','Arial Black',system-ui,sans-serif;font-size:15px;letter-spacing:.02em}
+.top .crew span span{color:var(--acc)}
+.av{flex:0 0 auto;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:14px;color:var(--ink)}
+.dayhead{display:flex;justify-content:space-between;align-items:center}
+.daynum{font-family:'Archivo Black','Arial Black',system-ui,sans-serif;font-size:84px;line-height:.9;letter-spacing:-.04em}
+.daynum span{font-size:28px;color:var(--mute);letter-spacing:0}
+.ring{position:relative;width:96px;height:96px}
+.ring svg{transform:rotate(-90deg)}
+.ring .val{position:absolute;inset:0;display:grid;place-items:center;text-align:center}
+.ring .val b{font-family:'Archivo Black','Arial Black',system-ui,sans-serif;font-size:24px;display:block;line-height:1}
+.ring .val small{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute)}
+.track{height:6px;background:var(--line);border-radius:6px;margin:16px 0 12px;overflow:hidden}
+.track i{display:block;height:100%;background:var(--acc);border-radius:6px}
+.pills{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.pill{font-size:13px;font-weight:600;padding:7px 11px;border-radius:999px;background:var(--card);border:1px solid var(--line)}
+.quote{font-size:17px;line-height:1.45;font-weight:500;position:relative;padding:18px 18px 16px}
+.quote cite{display:block;font-style:normal;font-size:13px;color:var(--mute);margin-top:8px}
+.item{display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:15px 14px;background:var(--card);border:1px solid var(--line);border-radius:14px;margin-bottom:8px;transition:all .15s}
+.item .box{flex:0 0 26px;height:26px;border-radius:8px;border:2px solid #4A4F51;display:grid;place-items:center;transition:all .15s}
+.item .lbl{flex:1;font-weight:600;font-size:16px}
+.item.on{border-color:rgba(200,245,66,.4);background:rgba(200,245,66,.06)}
+.item.on .box{background:var(--acc);border-color:var(--acc)}
+.item.on .box::after{content:'';width:7px;height:12px;border:solid var(--ink);border-width:0 3px 3px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.item.on .lbl{color:var(--mute);text-decoration:line-through;text-decoration-color:rgba(200,245,66,.5)}
+.pips{display:flex;gap:3px}
+.pips i{width:5px;height:14px;border-radius:2px;background:var(--line)}
+.pips i.f{background:var(--hot)}
+.done-banner{margin-top:14px;padding:16px;border-radius:14px;background:var(--acc);color:var(--ink);font-weight:700;text-align:center}
+.locked{font-size:12px;color:var(--mute);text-align:center;margin-top:10px}
+
+.lb .lrow{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.lb .lrow:last-child{border:0}
+.lb .rank{width:20px;font-family:'Archivo Black','Arial Black',system-ui,sans-serif;color:var(--mute);font-size:15px}
+.lb .lrow.first .rank{color:var(--acc)}
+.lb .who{flex:1;min-width:0}
+.lb .who b{display:block;font-size:15px}
+.lb .who small{font-size:12px;color:var(--mute)}
+.lb .sc{font-family:'Archivo Black','Arial Black',system-ui,sans-serif;font-size:20px}
+.lb .me{color:var(--acc)}
+.hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.gbar{margin:10px 0}
+.gbar .t{display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px}
+.bar{height:8px;background:var(--line);border-radius:8px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--acc)}
+.compose textarea{width:100%;min-height:70px;resize:vertical;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px;font-size:15px;outline:none}
+.compose textarea:focus{border-color:var(--acc)}
+.compose .row{justify-content:flex-end;margin-top:8px}
+.sbtn{padding:9px 16px;border-radius:10px;background:var(--acc);color:var(--ink);font-weight:700;font-size:14px}
+.post{display:flex;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}
+.post:last-child{border:0}
+.pbody{flex:1;min-width:0}
+.phead{display:flex;gap:8px;align-items:baseline;font-size:14px}
+.phead span{font-size:12px}
+.pbody p{font-size:15px;line-height:1.45;margin-top:3px;word-wrap:break-word}
+.pact{display:flex;gap:14px;margin-top:8px;align-items:center;font-size:13px}
+.react{padding:5px 10px;border-radius:999px;border:1px solid var(--line);font-size:13px}
+.react.on{border-color:var(--acc);background:rgba(200,245,66,.1);color:var(--acc)}
+.cm{font-size:14px;margin-top:8px;padding-left:10px;border-left:2px solid var(--line);line-height:1.4}
+.cbox{display:flex;gap:6px;margin-top:8px}
+.cbox input{flex:1;background:transparent;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:14px;outline:none;min-width:0}
+.cbox input:focus{border-color:var(--acc)}
+.cbox button{font-size:13px;font-weight:700;color:var(--acc);padding:0 8px}
+
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 8px;text-align:center}
+.stat b{font-family:'Archivo Black','Arial Black',system-ui,sans-serif;font-size:22px;display:block}
+.stat small{font-size:11px;color:var(--mute)}
+.cal{display:grid;grid-template-columns:repeat(10,1fr);gap:5px}
+.cal i{aspect-ratio:1;border-radius:5px;background:var(--card2);position:relative}
+.cal i.z{background:#3A2320}
+.cal i.l1{background:rgba(200,245,66,.25)}
+.cal i.l2{background:rgba(200,245,66,.55)}
+.cal i.l3{background:var(--acc)}
+.cal i.fut{background:transparent;border:1px dashed var(--line)}
+.cal i.today{outline:2px solid var(--text);outline-offset:1px}
+.legend{display:flex;gap:12px;font-size:11px;color:var(--mute);margin-top:10px;flex-wrap:wrap}
+.legend span{display:flex;align-items:center;gap:5px}
+.legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.gl{display:flex;gap:8px;margin-top:10px}
+.gl .input{padding:10px 12px;font-size:15px}
+.gl button{padding:0 16px;border-radius:12px;background:var(--card2);border:1px solid var(--line);font-weight:700}
+.badge{font-size:11px;padding:3px 8px;border-radius:999px;border:1px solid var(--line);color:var(--mute);font-weight:600}
+.badge.on{border-color:rgba(200,245,66,.4);color:var(--acc)}
+.big{font-family:'Archivo Black','Arial Black',system-ui,sans-serif;font-size:28px}
+.linkbtn{font-size:14px;font-weight:600;color:var(--mute);padding:10px 0;display:block;width:100%;text-align:left;border-top:1px solid var(--line)}
+.linkbtn:first-of-type{border-top:0}
+.linkbtn:hover{color:var(--text)}
+
+nav{position:fixed;left:0;right:0;bottom:0;background:rgba(14,15,12,.92);backdrop-filter:blur(12px);border-top:1px solid var(--line)}
+nav .in{max-width:460px;margin:0 auto;display:flex}
+nav button{flex:1;padding:12px 0 16px;font-size:12px;font-weight:600;color:var(--mute);display:flex;flex-direction:column;align-items:center;gap:4px}
+nav button svg{width:22px;height:22px}
+nav button.on{color:var(--acc)}
+
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
+#modal.show{display:flex}
+.mbox{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px;max-width:380px;width:100%}
+.mbox p{color:#C9CCC6;margin:10px 0 20px;line-height:1.45}
+.mrow{display:flex;gap:10px}
+.mrow .btn{margin:0}
+#toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%) translateY(20px);background:var(--text);color:var(--ink);padding:12px 18px;border-radius:12px;font-weight:700;font-size:14px;opacity:0;transition:all .25s;pointer-events:none;z-index:60;max-width:90%;text-align:center}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<div id="modal"></div>
+<div id="toast"></div>
+
+<script>
+/* =========================================================
+   Locked In 50 · built by Carter — demo build
+   Data is kept in this browser (localStorage). The Store
+   functions load()/save() are the only place that touches
+   storage, so swapping in a shared database later is contained.
+   ========================================================= */
+const KEY = 'the50-demo-v1', LEN = 50, DAY = 864e5, MIN_ITEMS = 5, MAX_ITEMS = 12, MAX_GOALS = 3;
+
+const QUOTES = [
+  {t:"Don't count the days. Make the days count.", a:"Muhammad Ali"},
+  {t:"It always seems impossible until it's done.", a:"Nelson Mandela"},
+  {t:"Fall seven times, stand up eight.", a:"Japanese proverb"},
+  {t:"Discipline equals freedom.", a:"Jocko Willink"},
+  {t:"Hard choices, easy life. Easy choices, hard life.", a:"Jerzy Gregorek"},
+  {t:"Let us not become weary in doing good.", a:"Galatians 6:9"},
+  {t:"Nobody remembers the day you felt like it. They remember that you showed up.", a:"Locked In 50"},
+  {t:"You don't have to be extreme. You have to be consistent.", a:"Locked In 50"},
+  {t:"Future you is watching. Make him proud.", a:"Locked In 50"},
+  {t:"One day, or day one. You decide.", a:"Locked In 50"},
+  {t:"Win the morning, win the day.", a:"Locked In 50"},
+  {t:"Do it tired. Do it anyway.", a:"Locked In 50"},
+  {t:"Do not despise these small beginnings.", a:"Zechariah 4:10"},
+  {t:"The list doesn't care how you feel. Tick it anyway.", a:"Locked In 50"},
+  {t:"Small wins, stacked daily, become big ones.", a:"Locked In 50"},
+  {t:"Comfort is a slow leak. Plug it.", a:"Locked In 50"},
+  {t:"Be the one who didn't quit on day 30.", a:"Locked In 50"},
+  {t:"I can do all this through him who gives me strength.", a:"Philippians 4:13"},
+  {t:"Your crew is only as strong as the one who shows up today. Be that one.", a:"Locked In 50"},
+  {t:"Halfway is not the finish line. Keep the foot down.", a:"Locked In 50"},
+  {t:"Excuses are easy. Results take work.", a:"Locked In 50"},
+  {t:"Every tick is a vote for the person you're becoming.", a:"Locked In 50"},
+  {t:"The hard days are the ones that count double.", a:"Locked In 50"},
+  {t:"Strong is built, not born.", a:"Locked In 50"},
+  {t:"Be strong and courageous. Do not be afraid.", a:"Joshua 1:9"}
+];
+
+const SUGGESTIONS = ['45 min workout','Drink 3L water','Read 10 pages','No junk food','No soft drink','10,000 steps','Bed by 10:30','No phone in bed','Cold shower','Devotion / quiet time','Study 1 hour','Progress photo','Stretch 10 min','No energy drinks','Make my bed'];
+const GOAL_TEMPLATES = {
+  weight:{label:'Weight', unit:'kg', shared:false},
+  pushups:{label:'Push-ups (one set)', unit:'reps', shared:true},
+  run:{label:'5 km run time', unit:'min', shared:true},
+  custom:{label:'', unit:'', shared:true}
+};
+const COLORS = ['#5EC8FF','#FF9F45','#C792FF','#FF6B8A','#4BE3B0','#FFD84D','#7AA2FF','#F28CFF'];
+
+/* ---------- date helpers ---------- */
+const ymd = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const parse = s => { const [a,b,c] = s.split('-').map(Number); return new Date(a,b-1,c); };
+const addDays = (s,n) => { const d = parse(s); d.setDate(d.getDate()+n); return ymd(d); };
+const diff = (a,b) => Math.round((parse(b)-parse(a))/DAY);
+const nowMs = () => Date.now() + (S ? S.dayOffset : 0)*DAY;
+const today = () => ymd(new Date(nowMs()));
+const fmt = s => parse(s).toLocaleDateString('en-AU',{day:'numeric',month:'short'});
+const uid = () => Math.random().toString(36).slice(2,9);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function hash(str){ let h = 2166136261; for (const ch of str){ h ^= ch.charCodeAt(0); h = Math.imul(h,16777619); } return (h>>>0)/4294967296; }
+function ago(ts){ const s = (nowMs()-ts)/1000; if (s<60) return 'now'; if (s<3600) return Math.floor(s/60)+'m'; if (s<86400) return Math.floor(s/3600)+'h'; return Math.floor(s/86400)+'d'; }
+
+/* ---------- store ---------- */
+let S;
+const ui = { view:'welcome', tab:'today', board:'overall', draft:null, err:'', pick:null };
+
+function load(){ try { const r = localStorage.getItem(KEY); if (r) return JSON.parse(r); } catch(e){} return seed(); }
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){} }
+
+function seed(){
+  const t = ymd(new Date());
+  const s = { group:{code:'DEMO', name:'Demo crew'}, users:{}, feed:[], dayOffset:0, me:null };
+  const mk = (id,name,color,startAgo,p,items,goals) => {
+    s.users[id] = { id, name, color, pin:'0000', bot:true, p, startDate:addDays(t,-startAgo),
+      items: items.map(([label,weight],i) => ({id:id+'i'+i, label, weight})),
+      goals: goals.map((g,i) => ({id:id+'g'+i, ...g, logs:[]})), days:{}, posted:{} };
+  };
+  mk('josh','Josh',COLORS[0],11,.95,[['45 min workout',3],['Drink 3L water',1],['Read 10 pages',2],['No junk food',2],['No phone after 10pm',2],['Progress photo',1]],
+     [{label:'Push-ups (one set)',unit:'reps',start:20,target:50,shared:true}]);
+  mk('liam','Liam',COLORS[1],11,.85,[['Gym session',3],['10,000 steps',2],['Protein with every meal',1],['Bed by 10:30',2],['Read 10 pages',1]],
+     [{label:'Weight',unit:'kg',start:68,target:74,shared:true}]);
+  mk('noah','Noah',COLORS[2],9,.72,[['Run or ride 30 min',3],['Drink 3L water',1],['Devotion / quiet time',2],['No energy drinks',2],['Study 1 hour',2]],
+     [{label:'5 km run time',unit:'min',start:31,target:25,shared:false}]);
+  for (const u of Object.values(s.users)) for (const g of u.goals){
+    const n = diff(u.startDate,t);
+    for (let d=0; d<=n; d+=3){
+      const f = Math.max(0, Math.min(1,(d/LEN)*1.3*u.p) + (d ? (hash(u.id+d)-.5)*.08 : 0));
+      g.logs.push({date:addDays(u.startDate,d), value:+(g.start+(g.target-g.start)*f).toFixed(1)});
+    }
+  }
+  const hrs = h => Date.now()-h*36e5;
+  s.feed = [
+    {id:uid(),userId:'josh',text:'Day 11 done. 100% 💯',ts:hrs(20),likes:['liam','noah'],comments:[{userId:'liam',text:'Machine.',ts:hrs(19)}]},
+    {id:uid(),userId:'noah',text:'Day 7 was rough. Missed two things. Back on it today.',ts:hrs(50),likes:['josh'],comments:[{userId:'josh',text:"One bad day doesn't make a bad week. Go.",ts:hrs(48)}]},
+    {id:uid(),userId:'liam',text:'New PB on bench this arvo 💪',ts:hrs(75),likes:['josh','noah'],comments:[]}
+  ];
+  return s;
+}
+
+/* Demo crew members log automatically so the group view feels alive */
+function fillBots(){
+  const t = today();
+  for (const u of Object.values(S.users)){
+    if (!u.bot) continue;
+    const last = addDays(u.startDate, LEN-1), end = t < last ? t : last;
+    for (let d = u.startDate; d <= end; d = addDays(d,1)){
+      if (u.days[d]) continue;
+      u.days[d] = u.items.filter(it => hash(u.id+d+it.id) < u.p).map(it => it.id);
+      if (d === t && score(u,d) === 100 && !u.posted[d]){
+        u.posted[d] = 1;
+        S.feed.push({id:uid(),userId:u.id,text:`Day ${diff(u.startDate,d)+1} done. 100% 💯`,ts:nowMs()-36e5*(1+hash(u.id+d)*4),likes:[],comments:[]});
+      }
+    }
+  }
+}
+
+/* ---------- scoring ---------- */
+function score(u,d){
+  const tot = u.items.reduce((a,i)=>a+i.weight,0), done = u.days[d] || [];
+  const got = u.items.filter(i=>done.includes(i.id)).reduce((a,i)=>a+i.weight,0);
+  return tot ? Math.round(got/tot*100) : 0;
+}
+const dayNum = u => diff(u.startDate, today()) + 1;
+function counted(u){ // days that count toward averages: every past challenge day, plus today once something is ticked
+  const t = today(), out = [], n = Math.min(dayNum(u), LEN);
+  for (let i=0;i<n;i++){ const d = addDays(u.startDate,i); if (d < t || (u.days[d] && u.days[d].length)) out.push(d); }
+  return out;
+}
+function avg(u,last){ let ds = counted(u); if (last) ds = ds.slice(-last); return ds.length ? Math.round(ds.reduce((a,d)=>a+score(u,d),0)/ds.length) : 0; }
+function streak(u){ const t = today(); let d = score(u,t)===100 ? t : addDays(t,-1), n = 0;
+  while (d >= u.startDate && diff(u.startDate,d) < LEN && score(u,d) === 100){ n++; d = addDays(d,-1); } return n; }
+function bestStreak(u){ let b=0,c=0; const n = Math.min(dayNum(u),LEN);
+  for (let i=0;i<n;i++){ if (score(u,addDays(u.startDate,i))===100){ c++; b=Math.max(b,c); } else c=0; } return b; }
+const fullDays = u => counted(u).filter(d => score(u,d)===100).length;
+const cur = g => g.logs.length ? g.logs[g.logs.length-1].value : g.start;
+function pct(g){ const span = g.target-g.start; return span ? Math.round((cur(g)-g.start)/span*100) : 100; }
+const clamp = v => Math.max(0, Math.min(100, v));
+
+/* ---------- brand ---------- */
+const SIL = 'M144 99C127 112 126 115 117 132C108 149 95 176 90 201C85 226 84 259 88 285C92 311 112 337 115 358C118 379 100 387 103 411C106 435 114 470 130 504C146 538 188 589 202 613C216 637 214 640 217 650C220 660 224 660 218 670C212 680 191 704 182 713C173 722 169 723 162 725C155 727 151 726 142 723C133 720 117 709 107 706C97 703 99 701 81 705C63 709 14 665 0 731C-14 797 -155 1038 0 1099C155 1160 776 1134 931 1099C1086 1064 933 925 931 889C929 853 931 894 917 883C903 872 875 841 848 823C821 805 786 795 756 777C726 759 688 729 671 716C654 703 663 712 656 700C649 688 649 655 627 644C605 633 543 636 522 632C501 628 504 631 499 619C494 607 495 579 495 561C495 543 498 521 500 509C502 497 502 497 507 490C512 483 525 476 531 468C537 460 540 464 543 445C546 426 551 378 550 356C549 334 540 332 539 316C538 300 542 280 541 261C540 242 540 226 531 202C522 178 506 139 489 115C472 91 446 72 430 60C414 48 405 47 392 43C379 39 372 38 354 36C336 34 306 33 287 34C268 35 255 37 243 40C231 43 234 41 217 51C200 61 161 86 144 99Z M2 734 L-600 1100 L2 1100 Z M930 898 L1600 1100 L930 1100 Z';
+let badgeN = 0;
+function badge(size, ring){ const id = 'bg'+(badgeN++);
+  return `<svg width="${size}" height="${size}" viewBox="0 0 320 320" role="img" aria-label="Locked In 50 badge" style="flex:0 0 auto;display:block">
+  <defs><clipPath id="${id}"><circle cx="160" cy="160" r="150"/></clipPath></defs>
+  <circle cx="160" cy="160" r="150" fill="#C8F542"/>
+  <g clip-path="url(#${id})"><path transform="translate(62 38) scale(0.31)" d="${SIL}" fill="#0E0F0C"/></g>
+  ${ring?'<circle cx="160" cy="160" r="158" fill="none" stroke="#F2F3EE" stroke-width="6"/>':''}</svg>`; }
+try { document.getElementById('fav').href = 'data:image/svg+xml,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320"><defs><clipPath id="c"><circle cx="160" cy="160" r="160"/></clipPath></defs><circle cx="160" cy="160" r="160" fill="#C8F542"/><g clip-path="url(#c)"><path transform="translate(62 38) scale(0.31)" d="${SIL}" fill="#0E0F0C"/></g></svg>`); } catch(e){}
+
+/* ---------- little UI bits ---------- */
+const avatar = (u, sz) => { const s = sz ? `width:${sz}px;height:${sz}px;font-size:${Math.round(sz*.42)}px;` : '';
+  return u.photo ? `<div class="av" role="img" aria-label="${esc(u.name)}" style="${s}background:#222 url(${u.photo}) center/cover"></div>`
+                 : `<div class="av" style="${s}background:${u.color}">${esc(u.name[0].toUpperCase())}</div>`; };
+function toAvatar(file){ return new Promise((res, rej) => { const r = new FileReader();
+  r.onload = () => { const img = new Image(); img.onload = () => { const N = 240, c = document.createElement('canvas'), s = Math.min(img.width, img.height);
+    c.width = c.height = N; c.getContext('2d').drawImage(img, (img.width-s)/2, (img.height-s)/2, s, s, 0, 0, N, N); res(c.toDataURL('image/jpeg', .82)); };
+    img.onerror = rej; img.src = r.result; };
+  r.onerror = rej; r.readAsDataURL(file); }); }
+const pips = w => `<span class="pips">${[1,2,3].map(i=>`<i class="${i<=w?'f':''}"></i>`).join('')}</span>`;
+function ring(v){ const r=40, c=2*Math.PI*r;
+  return `<div class="ring"><svg width="96" height="96"><circle cx="48" cy="48" r="${r}" stroke="#2A2E30" stroke-width="8" fill="none"/>
+  <circle cx="48" cy="48" r="${r}" stroke="#C8F542" stroke-width="8" fill="none" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${c*(1-v/100)}" style="transition:stroke-dashoffset .4s"/></svg>
+  <div class="val"><div><b>${v}%</b><small>today</small></div></div></div>`; }
+function spark(g){
+  const vals = g.logs.map(l=>l.value); if (vals.length < 2) return '';
+  const W=300,H=64,P=6, all=[...vals,g.target], mn=Math.min(...all), mx=Math.max(...all), rg=(mx-mn)||1;
+  const y = v => H-P-(v-mn)/rg*(H-2*P), x = i => P+i*(W-2*P)/(vals.length-1);
+  const pts = vals.map((v,i)=>`${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" style="margin-top:10px;display:block">
+    <line x1="${P}" x2="${W-P}" y1="${y(g.target)}" y2="${y(g.target)}" stroke="#8D9391" stroke-dasharray="4 4" stroke-width="1"/>
+    <text x="${W-P}" y="${y(g.target)<16?y(g.target)+12:y(g.target)-4}" fill="#8D9391" font-size="10" text-anchor="end">target ${g.target}</text>
+    <polyline points="${pts}" fill="none" stroke="#C8F542" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+    <circle cx="${x(vals.length-1)}" cy="${y(vals[vals.length-1])}" r="4" fill="#C8F542"/></svg>`;
+}
+const steps = n => `<div class="steps">${[1,2,3].map(i=>`<i class="${i<=n?'on':''}"></i>`).join('')}</div>`;
+const quoteFor = n => QUOTES[(n-1) % QUOTES.length];
+
+/* ---------- onboarding ---------- */
+function vWelcome(){
+  return `<div class="welcome">
+    <div class="lockup">${badge(116, true)}<div class="lname">LOCKED IN<span>50</span></div></div>
+    <p class="tag">Set your list. Lock it in. 50 days.</p>
+    <div class="rules">
+      <div class="rule"><b>1</b><span>Build your own daily checklist. At least ${MIN_ITEMS} things.</span></div>
+      <div class="rule"><b>2</b><span>Pick up to ${MAX_GOALS} goals to chase: weight, reps, run time, anything you can measure.</span></div>
+      <div class="rule"><b>3</b><span>Lock it in. No edits for 50 days. Your crew sees your daily score.</span></div>
+    </div>
+    <button class="btn primary" data-a="go" data-v="join">Start my 50</button>
+    <button class="btn ghost" data-a="go" data-v="login">I'm already in</button>
+    <p class="built">BUILT BY CARTER</p>
+    <p class="demo-note">Demo version · crew code <b>DEMO</b></p>
+  </div>`;
+}
+function vJoin(){
+  return `<div class="eyebrow" style="margin-top:8px">Join a crew</div><h2 style="margin:6px 0 18px">Who's taking it on?</h2>
+    <div class="field"><label>Crew code</label><input class="input" id="j-code" value="DEMO" autocapitalize="characters"></div>
+    <div class="field"><label>Your name</label><input class="input" id="j-name" placeholder="First name" maxlength="20"></div>
+    <div class="field"><label>4-digit PIN (so only you can tick your list)</label><input class="input" id="j-pin" inputmode="numeric" maxlength="4" placeholder="••••" type="password"></div>
+    <div class="field"><label>Profile photo (optional)</label><label class="photopick"><span class="pp" id="j-prev">${ui.joinPhoto?`<img src="${ui.joinPhoto}" alt="">`:'+'}</span><span id="j-ptext">${ui.joinPhoto?'Change photo':'Add a photo'}</span><input type="file" accept="image/*" id="j-photo" hidden></label></div>
+    ${ui.err?`<div class="err">${ui.err}</div>`:''}
+    <button class="btn primary" data-a="join">Next</button>
+    <button class="btn ghost" data-a="go" data-v="welcome">Back</button>`;
+}
+function vList(){
+  const d = ui.draft, have = d.items.map(i=>i.label.toLowerCase());
+  return `${steps(1)}<div class="eyebrow">Step 1 · Your daily list</div><h2 style="margin-top:6px">What will you do every day?</h2>
+    <p class="sub">Add at least ${MIN_ITEMS}. Harder items count for more of your daily score.</p>
+    <div class="count"><b>${d.items.length}</b> / ${MIN_ITEMS} minimum</div>
+    ${d.items.map((it,i)=>`<div class="ditem"><span class="lbl">${esc(it.label)}</span>
+      <div class="seg">${[['Easy',1],['Med',2],['Hard',3]].map(([l,w])=>`<button class="${it.weight===w?'on':''}" data-a="w" data-i="${i}" data-v="${w}">${l}</button>`).join('')}</div>
+      <button class="x" data-a="rm-item" data-v="${i}" aria-label="Remove">×</button></div>`).join('')}
+    <div class="addrow"><input class="input" id="add-item" placeholder="Add your own…" maxlength="40"><button data-a="add-item">Add</button></div>
+    <div class="chips">${SUGGESTIONS.filter(s=>!have.includes(s.toLowerCase())).slice(0,10).map(s=>`<button class="chip" data-a="sugg" data-v="${esc(s)}">+ ${esc(s)}</button>`).join('')}</div>
+    <div class="footer"><div class="in row"><button class="btn ghost" style="flex:0 0 30%" data-a="go" data-v="join">Back</button>
+      <button class="btn primary" data-a="go" data-v="goals" ${d.items.length<MIN_ITEMS?'disabled':''}>Next</button></div></div>`;
+}
+function vGoals(){
+  const d = ui.draft;
+  return `${steps(2)}<div class="eyebrow">Step 2 · Goals</div><h2 style="margin-top:6px">What are you chasing?</h2>
+    <p class="sub">Up to ${MAX_GOALS}. Works whether the number needs to go up or down. Optional, but it's good to see progress.</p>
+    ${d.goals.map((g,i)=>`<div class="card gcard">
+      <div class="hd"><h3>Goal ${i+1}</h3><button class="x" data-a="rm-goal" data-v="${i}">×</button></div>
+      <div class="field"><label>What</label><input class="input" data-g="${i}" data-f="label" value="${esc(g.label)}" placeholder="e.g. Push-ups"></div>
+      <div class="grid2">
+        <div class="field"><label>Start</label><input class="input" data-g="${i}" data-f="start" inputmode="decimal" value="${esc(g.start)}"></div>
+        <div class="field"><label>Target</label><input class="input" data-g="${i}" data-f="target" inputmode="decimal" value="${esc(g.target)}"></div>
+      </div>
+      <div class="field"><label>Unit</label><input class="input" data-g="${i}" data-f="unit" value="${esc(g.unit)}" placeholder="kg, reps, min…"></div>
+      <label class="toggle"><input type="checkbox" data-g="${i}" data-f="shared" ${g.shared?'checked':''}> Show my % progress to the crew</label>
+      <p class="note">The crew only ever sees a percentage, never your actual numbers.</p>
+    </div>`).join('')}
+    ${d.goals.length<MAX_GOALS?`<div class="chips">${Object.entries({weight:'+ Weight',pushups:'+ Push-ups',run:'+ 5 km run time',custom:'+ Custom goal'}).map(([k,l])=>`<button class="chip" data-a="goal-t" data-v="${k}">${l}</button>`).join('')}</div>`:''}
+    ${ui.err?`<div class="err">${ui.err}</div>`:''}
+    <div class="footer"><div class="in row"><button class="btn ghost" style="flex:0 0 30%" data-a="go" data-v="list">Back</button>
+      <button class="btn primary" data-a="to-lock">Next</button></div></div>`;
+}
+function vLock(){
+  const d = ui.draft, end = addDays(addDays(today(),d.startIn), LEN-1);
+  return `${steps(3)}<div class="eyebrow">Step 3 · Lock it in</div><h2 style="margin-top:6px">Last look, ${esc(d.name)}.</h2>
+    <p class="sub">Once you lock in, this list and these goals can't change for 50 days.</p>
+    <div class="row" style="margin-bottom:14px"><button class="opt ${d.startIn===0?'on':''}" data-a="start" data-v="0">Start today</button><button class="opt ${d.startIn===1?'on':''}" data-a="start" data-v="1">Start tomorrow</button></div>
+    <div class="card"><div class="eyebrow" style="margin-bottom:6px">Daily list</div>
+      <ul class="sumlist">${d.items.map(i=>`<li><span>${esc(i.label)}</span>${pips(i.weight)}</li>`).join('')}</ul></div>
+    ${d.goals.length?`<div class="card"><div class="eyebrow" style="margin-bottom:6px">Goals</div>
+      <ul class="sumlist">${d.goals.map(g=>`<li><span>${esc(g.label)}</span><span class="mute">${esc(g.start)} → ${esc(g.target)} ${esc(g.unit)}</span></li>`).join('')}</ul></div>`:''}
+    <p class="mute" style="font-size:14px;text-align:center;margin-bottom:10px">Finish line: <b style="color:var(--text)">${fmt(end)}</b></p>
+    <div class="footer"><div class="in row"><button class="btn ghost" style="flex:0 0 30%" data-a="go" data-v="goals">Back</button>
+      <button class="btn primary" data-a="lock">🔒 Lock in for 50 days</button></div></div>`;
+}
+function vLogin(){
+  const us = Object.values(S.users);
+  return `<div class="eyebrow" style="margin-top:8px">Welcome back</div><h2 style="margin:6px 0 18px">Who are you?</h2>
+    ${us.map(u=>`<button class="member ${ui.pick===u.id?'on':''}" data-a="pick" data-v="${u.id}">${avatar(u)}${esc(u.name)}<span class="mute" style="margin-left:auto;font-size:13px">${dayNum(u)<1?'Starts soon':dayNum(u)>LEN?'Finished':'Day '+dayNum(u)}</span></button>`).join('')}
+    ${ui.pick?`<div class="field" style="margin-top:14px"><label>PIN</label><input class="input" id="l-pin" inputmode="numeric" maxlength="4" type="password" placeholder="••••" autofocus></div>`:''}
+    ${ui.err?`<div class="err">${ui.err}</div>`:''}
+    <button class="btn primary" data-a="login" ${ui.pick?'':'disabled'} style="margin-top:6px">Log in</button>
+    <button class="btn ghost" data-a="go" data-v="welcome">Back</button>
+    <p class="demo-note">Demo crew members (Josh, Liam, Noah) use PIN 0000</p>`;
+}
+
+/* ---------- main tabs ---------- */
+function tToday(u){
+  const t = today(), n = dayNum(u);
+  if (n < 1) return `<div class="card center" style="padding:28px 18px"><div class="eyebrow">Locked in 🔒</div><h2 style="margin:8px 0">Day 1 starts tomorrow</h2>
+    <p class="mute" style="margin-bottom:14px">Rest up. Here's what you signed up for.</p>
+    <ul class="sumlist" style="text-align:left">${u.items.map(i=>`<li><span>${esc(i.label)}</span>${pips(i.weight)}</li>`).join('')}</ul></div>`;
+  if (n > LEN) return tFinished(u);
+  const sc = score(u,t), done = u.days[t] || [], q = quoteFor(n);
+  return `<div class="dayhead"><div><div class="eyebrow">Day</div><div class="daynum">${n}<span>/${LEN}</span></div></div>${ring(sc)}</div>
+    <div class="track"><i style="width:${n/LEN*100}%"></i></div>
+    <div class="pills"><span class="pill">🔥 ${streak(u)} day streak</span><span class="pill">${LEN-n} days to go</span><span class="pill">Avg ${avg(u)}%</span></div>
+    <div class="card quote">“${esc(q.t)}”<cite>— ${esc(q.a)}</cite></div>
+    ${u.items.map(it=>`<button class="item ${done.includes(it.id)?'on':''}" data-a="tick" data-v="${it.id}"><span class="box"></span><span class="lbl">${esc(it.label)}</span>${pips(it.weight)}</button>`).join('')}
+    ${sc===100?`<div class="done-banner">Day ${n} complete. That's how it's done. 💯</div>`:''}
+    <p class="locked">🔒 List locked until ${fmt(addDays(u.startDate,LEN-1))}</p>`;
+}
+function tFinished(u){
+  return `<div class="card center" style="padding:30px 18px"><div class="eyebrow">Challenge complete</div><div class="logo" style="font-size:40px;margin:10px 0">50 DAYS.<br><span style="font-size:60px;display:inline">DONE.</span></div>
+    <div class="stats" style="margin-top:18px"><div class="stat"><b>${avg(u)}%</b><small>avg score</small></div><div class="stat"><b>${fullDays(u)}</b><small>perfect days</small></div><div class="stat"><b>${bestStreak(u)}</b><small>best streak</small></div><div class="stat"><b>${u.goals.filter(g=>pct(g)>=100).length}/${u.goals.length}</b><small>goals hit</small></div></div>
+    ${u.goals.map(g=>`<div class="gbar" style="text-align:left"><div class="t"><span>${esc(g.label)}</span><span>${g.start} → ${cur(g)} ${esc(g.unit)}</span></div><div class="bar"><i style="width:${clamp(pct(g))}%"></i></div></div>`).join('')}
+  </div>`;
+}
+function tCrew(me){
+  const all = Object.values(S.users), active = all.filter(u=>dayNum(u)>=1), soon = all.filter(u=>dayNum(u)<1);
+  const rows = active.map(u=>({u, s:avg(u, ui.board==='week'?7:0), st:streak(u)})).sort((a,b)=>b.s-a.s||b.st-a.st);
+  const shared = all.flatMap(u=>u.goals.filter(g=>g.shared).map(g=>({u,g})));
+  const feed = [...S.feed].sort((a,b)=>b.ts-a.ts).slice(0,25);
+  return `<div class="card lb"><div class="hd"><h3>Leaderboard</h3>
+      <div class="seg"><button class="${ui.board==='week'?'on':''}" data-a="board" data-v="week">Last 7 days</button><button class="${ui.board==='overall'?'on':''}" data-a="board" data-v="overall">Overall</button></div></div>
+    ${rows.map((r,i)=>`<div class="lrow ${i===0?'first':''}"><span class="rank">${i+1}</span>${avatar(r.u)}<div class="who"><b class="${r.u.id===me.id?'me':''}">${esc(r.u.name)}${r.u.id===me.id?' (you)':''}</b><small>${dayNum(r.u)>LEN?'Finished':'Day '+dayNum(r.u)} · 🔥 ${r.st}</small></div><span class="sc">${r.s}%</span></div>`).join('')}
+    ${soon.length?`<p class="mute" style="font-size:13px;margin-top:8px">Starting soon: ${soon.map(u=>esc(u.name)).join(', ')}</p>`:''}
+    <p class="mute" style="font-size:12px;margin-top:10px">Score = average % of your own list completed each day.</p></div>
+    ${shared.length?`<div class="card"><h3 style="margin-bottom:4px">Goal progress</h3>
+      ${shared.map(({u,g})=>`<div class="gbar"><div class="t"><span><b>${esc(u.name)}</b> <span class="mute">· ${esc(g.label)}</span></span><span>${pct(g)}%</span></div><div class="bar"><i style="width:${clamp(pct(g))}%"></i></div></div>`).join('')}</div>`:''}
+    <div class="card"><div class="compose"><textarea id="post-text" placeholder="Shout out the crew, or tell them how today went…" maxlength="280"></textarea><div class="row"><button class="sbtn" data-a="post">Post</button></div></div></div>
+    <div class="card" style="padding-top:4px;padding-bottom:4px">${feed.map(p=>{ const u = S.users[p.userId]; if (!u) return ''; const liked = p.likes.includes(me.id);
+      return `<div class="post">${avatar(u)}<div class="pbody"><div class="phead"><b>${esc(u.name)}</b><span class="mute">${ago(p.ts)}</span></div><p>${esc(p.text)}</p>
+        <div class="pact"><button class="react ${liked?'on':''}" data-a="like" data-v="${p.id}">👍 ${p.likes.length||''}</button><span class="mute">💬 ${p.comments.length}</span></div>
+        ${p.comments.map(c=>{ const cu = S.users[c.userId]; return `<div class="cm"><b>${esc(cu?cu.name:'?')}</b> ${esc(c.text)}</div>`; }).join('')}
+        <div class="cbox"><input id="c-${p.id}" placeholder="Add a comment…" maxlength="200"><button data-a="comment" data-v="${p.id}">Send</button></div></div></div>`; }).join('')}</div>`;
+}
+function tMe(u){
+  const t = today(), n = dayNum(u);
+  const cells = Array.from({length:LEN},(_,i)=>{ const d = addDays(u.startDate,i); let c;
+    if (d > t) c = 'fut'; else { const s = score(u,d); c = d===t && s===0 ? '' : s===0 ? 'z' : s<50 ? 'l1' : s<100 ? 'l2' : 'l3'; }
+    return `<i class="${c} ${d===t?'today':''}" title="Day ${i+1} · ${fmt(d)}"></i>`; }).join('');
+  return `<div class="row" style="margin-bottom:16px;gap:14px"><label class="avedit" aria-label="Change profile photo">${avatar(u,64)}<span class="cam"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></span><input type="file" accept="image/*" id="photo-in" hidden></label><div><h2 style="font-size:24px">${esc(u.name)}</h2>
+      <div class="mute" style="font-size:13px">${fmt(u.startDate)} → ${fmt(addDays(u.startDate,LEN-1))}</div>
+      <div style="font-size:12px;margin-top:4px" class="mute">${u.photo?'Tap photo to change · <button class="tlink" data-a="rm-photo">Remove</button>':'Tap to add a photo'}</div></div></div>
+    <div class="stats"><div class="stat"><b>${avg(u)}%</b><small>avg</small></div><div class="stat"><b>${fullDays(u)}</b><small>perfect</small></div><div class="stat"><b>${streak(u)}</b><small>streak</small></div><div class="stat"><b>${bestStreak(u)}</b><small>best</small></div></div>
+    <div class="card"><div class="hd"><h3>50 days</h3><span class="mute" style="font-size:13px">${n<1?'Not started':n>LEN?'Complete':'Day '+n}</span></div>
+      <div class="cal">${cells}</div>
+      <div class="legend"><span><i style="background:var(--acc)"></i>100%</span><span><i style="background:rgba(200,245,66,.55)"></i>50–99%</span><span><i style="background:rgba(200,245,66,.25)"></i>1–49%</span><span><i style="background:#3A2320"></i>Missed</span></div></div>
+    ${u.goals.map(g=>{ const p = pct(g); return `<div class="card"><div class="hd"><h3>${esc(g.label)}</h3><span class="badge ${g.shared?'on':''}">${g.shared?'% shared':'Private'}</span></div>
+      <div class="row" style="justify-content:space-between;align-items:baseline"><span class="big">${cur(g)} <span class="mute" style="font-size:15px;font-family:Archivo">${esc(g.unit)}</span></span><span class="mute" style="font-size:13px">${g.start} → ${g.target} · <b style="color:var(--text)">${p}%</b></span></div>
+      <div class="bar" style="margin-top:10px"><i style="width:${clamp(p)}%"></i></div>${spark(g)}
+      ${n>=1&&n<=LEN?`<div class="gl"><input class="input" id="gl-${g.id}" inputmode="decimal" placeholder="Today's ${esc(g.unit||'number')}"><button data-a="log" data-v="${g.id}">Log</button></div>`:''}</div>`; }).join('')}
+    <div class="card"><div class="hd"><h3>My list</h3><span class="badge">🔒 Locked</span></div>
+      <ul class="sumlist">${u.items.map(i=>`<li><span>${esc(i.label)}</span>${pips(i.weight)}</li>`).join('')}</ul></div>
+    <div class="card"><button class="linkbtn" data-a="logout">Log out</button></div>
+    <div class="card" style="border-style:dashed"><div class="eyebrow" style="margin-bottom:6px">Demo tools</div>
+      <p class="mute" style="font-size:13px;margin-bottom:6px">This demo keeps data in this browser only. ${S.dayOffset?`Viewing as <b style="color:var(--text)">${fmt(t)}</b>.`:''}</p>
+      <button class="linkbtn" data-a="jump">⏩ Skip ahead one day</button>
+      ${S.dayOffset?`<button class="linkbtn" data-a="jump0">↩︎ Back to real today</button>`:''}
+      <button class="linkbtn" data-a="reset">Reset demo</button></div>
+    <p class="built" style="text-align:center;margin:8px 0 0">LOCKED IN 50 · BUILT BY CARTER</p>`;
+}
+const ICONS = {
+  today:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg>',
+  crew:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"/><circle cx="17" cy="9" r="2.5"/><path d="M16.5 14.5c2.4.2 4.3 2 5 5"/></svg>',
+  me:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>'
+};
+function vMain(u){
+  const n = dayNum(u), body = ui.tab==='crew' ? tCrew(u) : ui.tab==='me' ? tMe(u) : tToday(u);
+  return `<div class="top"><div class="crew row" style="gap:9px">${badge(30)}<span>LOCKED IN <span>50</span></span></div><div class="row" style="gap:8px"><span class="mute" style="font-size:13px">${n<1?'Starts tomorrow':n>LEN?'Complete':'Day '+n}</span>${avatar(u)}</div></div>
+    ${body}
+    <nav><div class="in">${[['today','Today'],['crew','Crew'],['me','Progress']].map(([k,l])=>`<button class="${ui.tab===k?'on':''}" data-a="tab" data-v="${k}">${ICONS[k]}${l}</button>`).join('')}</div></nav>`;
+}
+
+/* ---------- render ---------- */
+const $app = document.getElementById('app');
+function render(){
+  fillBots(); save();
+  const me = S.me && S.users[S.me];
+  if (me) $app.innerHTML = vMain(me);
+  else $app.innerHTML = ({welcome:vWelcome, join:vJoin, list:vList, goals:vGoals, lock:vLock, login:vLogin}[ui.view] || vWelcome)();
+}
+const val = id => (document.getElementById(id)?.value || '').trim();
+function toast(t){ const el = document.getElementById('toast'); el.textContent = t; el.classList.add('show'); clearTimeout(toast.h); toast.h = setTimeout(()=>el.classList.remove('show'), 2200); }
+function modal(title, body, ok, fn){
+  const m = document.getElementById('modal');
+  m.innerHTML = `<div class="mbox"><h3 style="font-size:19px">${title}</h3><p>${body}</p><div class="mrow"><button class="btn ghost" data-m="x">Cancel</button><button class="btn primary" data-m="ok">${ok}</button></div></div>`;
+  m.classList.add('show');
+  m.onclick = e => { const k = e.target.dataset.m; if (k==='ok'){ m.classList.remove('show'); fn(); } else if (k==='x' || e.target===m) m.classList.remove('show'); };
+}
+function post(userId, text){ S.feed.push({id:uid(), userId, text, ts:nowMs(), likes:[], comments:[]}); }
+
+/* ---------- actions ---------- */
+function act(a, v, el){
+  const me = S.me && S.users[S.me], d = ui.draft;
+  switch(a){
+    case 'go': ui.view = v; ui.err = ''; if (v==='welcome') ui.joinPhoto = null; if (v==='login') ui.pick = null; break;
+    case 'join': {
+      const code = val('j-code').toUpperCase(), name = val('j-name'), pin = val('j-pin');
+      if (code !== S.group.code) { ui.err = "That crew code doesn't match. (Use DEMO.)"; break; }
+      if (!name) { ui.err = 'Add your name.'; break; }
+      if (Object.values(S.users).some(u=>u.name.toLowerCase()===name.toLowerCase())) { ui.err = 'Someone in the crew already has that name.'; break; }
+      if (!/^\d{4}$/.test(pin)) { ui.err = 'PIN needs to be 4 digits.'; break; }
+      ui.err = ''; ui.draft = {name, pin, photo:ui.joinPhoto||null, items:[], goals:[], startIn:0}; ui.view = 'list'; break;
+    }
+    case 'sugg': if (d.items.length < MAX_ITEMS) d.items.push({label:v, weight:2}); break;
+    case 'add-item': {
+      const l = val('add-item'); if (!l) return;
+      if (d.items.length >= MAX_ITEMS) { toast(`Max ${MAX_ITEMS} items`); return; }
+      if (d.items.some(i=>i.label.toLowerCase()===l.toLowerCase())) { toast('Already on your list'); return; }
+      d.items.push({label:l, weight:2}); render(); document.getElementById('add-item')?.focus(); return;
+    }
+    case 'w': d.items[+el.dataset.i].weight = +v; break;
+    case 'rm-item': d.items.splice(+v,1); break;
+    case 'goal-t': if (d.goals.length < MAX_GOALS) d.goals.push({...GOAL_TEMPLATES[v], start:'', target:''}); break;
+    case 'rm-goal': d.goals.splice(+v,1); ui.err=''; break;
+    case 'to-lock': {
+      const bad = d.goals.find(g => !String(g.label).trim() || g.start==='' || g.target==='' || isNaN(+g.start) || isNaN(+g.target) || +g.start===+g.target);
+      if (bad) { ui.err = 'Each goal needs a name, plus a start and target number that are different.'; break; }
+      ui.err = ''; ui.view = 'lock'; break;
+    }
+    case 'start': d.startIn = +v; break;
+    case 'lock':
+      modal('Lock it in?', "No edits to your list or goals for 50 days. Miss a day and it counts as 0%. You in?", "I'm in", () => {
+        const id = uid(), start = addDays(today(), d.startIn), used = Object.values(S.users).map(u=>u.color);
+        S.users[id] = { id, name:d.name, pin:d.pin, photo:d.photo, color: COLORS.find(c=>!used.includes(c)) || COLORS[0], bot:false, startDate:start,
+          items: d.items.map((it,i)=>({id:id+'i'+i, label:it.label, weight:it.weight})),
+          goals: d.goals.map((g,i)=>({id:id+'g'+i, label:String(g.label).trim(), unit:String(g.unit).trim(), start:+g.start, target:+g.target, shared:!!g.shared, logs:[{date:start, value:+g.start}]})),
+          days:{}, posted:{} };
+        post(id, `Locked in for 50 days 🔒 Starting ${d.startIn ? 'tomorrow' : 'today'}.`);
+        S.me = id; ui.tab = 'today'; ui.draft = null; render(); scrollTo(0,0); toast('Locked in. Day 1, let\'s go.');
+      }); return;
+    case 'pick': ui.pick = v; ui.err = ''; break;
+    case 'login': {
+      const u = S.users[ui.pick]; if (!u) return;
+      if (val('l-pin') !== u.pin) { ui.err = "PIN doesn't match."; break; }
+      S.me = u.id; ui.err = ''; ui.tab = 'today'; break;
+    }
+    case 'tab': ui.tab = v; render(); scrollTo(0,0); return;
+    case 'tick': {
+      const t = today(), arr = me.days[t] || (me.days[t] = []), i = arr.indexOf(v);
+      i >= 0 ? arr.splice(i,1) : arr.push(v);
+      if (score(me,t) === 100 && !me.posted[t]) { me.posted[t] = 1; post(me.id, `Day ${dayNum(me)} done. 100% 💯`); setTimeout(()=>toast('💯 Perfect day. Posted to the crew.'), 50); }
+      break;
+    }
+    case 'board': ui.board = v; break;
+    case 'post': { const t = val('post-text'); if (!t) return; post(me.id, t); break; }
+    case 'like': { const p = S.feed.find(p=>p.id===v); const i = p.likes.indexOf(me.id); i>=0 ? p.likes.splice(i,1) : p.likes.push(me.id); break; }
+    case 'comment': { const t = val('c-'+v); if (!t) return; S.feed.find(p=>p.id===v).comments.push({userId:me.id, text:t, ts:nowMs()}); break; }
+    case 'log': {
+      const raw = val('gl-'+v), num = parseFloat(raw); if (isNaN(num)) { toast('Enter a number'); return; }
+      const g = me.goals.find(g=>g.id===v), t = today(), was = pct(g);
+      g.logs = g.logs.filter(l=>l.date!==t); g.logs.push({date:t, value:num}); g.logs.sort((a,b)=>a.date<b.date?-1:1);
+      if (g.shared && pct(g) >= 100 && was < 100) post(me.id, `Hit my goal: ${g.label} 🎯`);
+      toast('Logged'); break;
+    }
+    case 'rm-photo': delete me.photo; toast('Photo removed'); break;
+    case 'logout': S.me = null; ui.view = 'welcome'; break;
+    case 'jump': S.dayOffset += 1; render(); toast('Now: ' + fmt(today())); return;
+    case 'jump0': S.dayOffset = 0; break;
+    case 'reset':
+      modal('Reset the demo?', 'This clears everyone\'s progress on this device and starts fresh.', 'Reset', () => {
+        try { localStorage.removeItem(KEY); } catch(e){}
+        S = null; S = seed(); ui.view = 'welcome'; ui.tab = 'today'; render(); scrollTo(0,0);
+      }); return;
+  }
+  render();
+}
+
+document.addEventListener('click', e => { const b = e.target.closest('[data-a]'); if (!b || b.disabled) return; act(b.dataset.a, b.dataset.v, b); });
+document.addEventListener('input', e => { const f = e.target.dataset.f; if (f && ui.draft) ui.draft.goals[+e.target.dataset.g][f] = e.target.type==='checkbox' ? e.target.checked : e.target.value; });
+document.addEventListener('change', async e => {
+  const id = e.target.id; if (id !== 'photo-in' && id !== 'j-photo') return;
+  const f = e.target.files && e.target.files[0]; if (!f) return;
+  try {
+    const url = await toAvatar(f);
+    if (id === 'j-photo') { ui.joinPhoto = url; const p = document.getElementById('j-prev'); if (p) p.innerHTML = `<img src="${url}" alt="">`; const t = document.getElementById('j-ptext'); if (t) t.textContent = 'Change photo'; }
+    else { S.users[S.me].photo = url; render(); toast('Photo updated'); }
+  } catch(err) { toast("Couldn't read that image"); }
+});
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter' || e.target.tagName === 'TEXTAREA') return;
+  const id = e.target.id || '';
+  if (id === 'add-item') { e.preventDefault(); act('add-item'); }
+  else if (id.startsWith('c-')) act('comment', id.slice(2));
+  else if (id.startsWith('gl-')) act('log', id.slice(3));
+  else if (id === 'l-pin') act('login');
+  else if (id === 'j-pin') act('join');
+});
+
+S = load();
+render();
+</script>
+</body>
+</html>
