@@ -19,12 +19,13 @@
   --bg:#0E0F0C; --card:#17191A; --card2:#1E2122; --line:#2A2E30;
   --text:#F2F3EE; --mute:#8D9391; --acc:#C8F542; --ink:#0E0F0C; --hot:#FF7A45;
   --r:16px;
+  --hostbar:52px; /* room for the hosting badge at the bottom of the screen; set to 0px to remove */
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{background:var(--bg);color:var(--text);font-family:'Archivo',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
 button,input,textarea{font:inherit;color:inherit}
 button{cursor:pointer;border:0;background:none}
-.wrap{max-width:460px;margin:0 auto;min-height:100dvh;padding:20px 18px 110px}
+.wrap{max-width:460px;margin:0 auto;min-height:100dvh;padding:20px 18px calc(110px + var(--hostbar))}
 .mute{color:var(--mute)}
 .eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);font-weight:600}
 h2{font-family:'Archivo Black','Arial Black',system-ui,sans-serif;font-size:26px;line-height:1.1;letter-spacing:-.01em}
@@ -95,7 +96,7 @@ h3{font-size:16px;font-weight:700}
 .toggle{display:flex;align-items:center;gap:10px;font-size:14px;color:#C9CCC6;margin-top:4px}
 .toggle input{width:20px;height:20px;accent-color:var(--acc)}
 .note{font-size:13px;color:var(--mute);line-height:1.4;margin-top:8px}
-.footer{position:fixed;left:0;right:0;bottom:0;background:linear-gradient(transparent,var(--bg) 30%);padding:26px 18px 18px}
+.footer{position:fixed;left:0;right:0;bottom:0;background:linear-gradient(transparent,var(--bg) 30%);padding:26px 18px calc(18px + var(--hostbar))}
 .footer .in{max-width:460px;margin:0 auto}
 .opt{flex:1;padding:14px;border-radius:14px;border:1px solid var(--line);text-align:center;font-weight:600}
 .opt.on{border-color:var(--acc);color:var(--acc);background:rgba(200,245,66,.06)}
@@ -197,7 +198,7 @@ h3{font-size:16px;font-weight:700}
 
 nav{position:fixed;left:0;right:0;bottom:0;background:rgba(14,15,12,.92);backdrop-filter:blur(12px);border-top:1px solid var(--line)}
 nav .in{max-width:460px;margin:0 auto;display:flex}
-nav button{flex:1;padding:12px 0 16px;font-size:12px;font-weight:600;color:var(--mute);display:flex;flex-direction:column;align-items:center;gap:4px}
+nav button{flex:1;padding:12px 0 calc(16px + var(--hostbar));font-size:12px;font-weight:600;color:var(--mute);display:flex;flex-direction:column;align-items:center;gap:4px}
 nav button svg{width:22px;height:22px}
 nav button.on{color:var(--acc)}
 
@@ -207,7 +208,7 @@ nav button.on{color:var(--acc)}
 .mbox p{color:#C9CCC6;margin:10px 0 20px;line-height:1.45}
 .mrow{display:flex;gap:10px}
 .mrow .btn{margin:0}
-#toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%) translateY(20px);background:var(--text);color:var(--ink);padding:12px 18px;border-radius:12px;font-weight:700;font-size:14px;opacity:0;transition:all .25s;pointer-events:none;z-index:60;max-width:90%;text-align:center}
+#toast{position:fixed;left:50%;bottom:calc(96px + var(--hostbar));transform:translateX(-50%) translateY(20px);background:var(--text);color:var(--ink);padding:12px 18px;border-radius:12px;font-weight:700;font-size:14px;opacity:0;transition:all .25s;pointer-events:none;z-index:60;max-width:90%;text-align:center}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
 </head>
