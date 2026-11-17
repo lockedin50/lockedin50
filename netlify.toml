@@ -1,0 +1,12 @@
+[build]
+  publish = "."
+
+# Always check for a fresh copy of the app so updates show up straight away.
+[[headers]]
+  for = "/"
+  [headers.values]
+    Cache-Control = "no-cache"
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "no-cache"

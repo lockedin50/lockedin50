@@ -6,6 +6,12 @@
 <title>Locked In 50 · built by Carter</title>
 <link rel="icon" id="fav">
 <meta name="theme-color" content="#0E0F0C">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Locked In 50">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -206,12 +212,11 @@ nav button.on{color:var(--acc)}
 
 <script>
 /* =========================================================
-   Locked In 50 · built by Carter — demo build
-   Data is kept in this browser (localStorage). The Store
-   functions load()/save() are the only place that touches
-   storage, so swapping in a shared database later is contained.
+   Locked In 50 · built by Carter
+   Shared data lives in Supabase. The app only talks to it
+   through the database functions in supabase/schema.sql.
    ========================================================= */
-const KEY = 'the50-demo-v1', LEN = 50, DAY = 864e5, MIN_ITEMS = 5, MAX_ITEMS = 12, MAX_GOALS = 3;
+const LEN = 50, DAY = 864e5, MIN_ITEMS = 5, MAX_ITEMS = 12, MAX_GOALS = 3;
 
 const QUOTES = [
   {t:"Don't count the days. Make the days count.", a:"Muhammad Ali"},
@@ -255,7 +260,7 @@ const ymd = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+
 const parse = s => { const [a,b,c] = s.split('-').map(Number); return new Date(a,b-1,c); };
 const addDays = (s,n) => { const d = parse(s); d.setDate(d.getDate()+n); return ymd(d); };
 const diff = (a,b) => Math.round((parse(b)-parse(a))/DAY);
-const nowMs = () => Date.now() + (S ? S.dayOffset : 0)*DAY;
+const nowMs = () => Date.now();
 const today = () => ymd(new Date(nowMs()));
 const fmt = s => parse(s).toLocaleDateString('en-AU',{day:'numeric',month:'short'});
 const uid = () => Math.random().toString(36).slice(2,9);
@@ -263,59 +268,51 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>'
 function hash(str){ let h = 2166136261; for (const ch of str){ h ^= ch.charCodeAt(0); h = Math.imul(h,16777619); } return (h>>>0)/4294967296; }
 function ago(ts){ const s = (nowMs()-ts)/1000; if (s<60) return 'now'; if (s<3600) return Math.floor(s/60)+'m'; if (s<86400) return Math.floor(s/3600)+'h'; return Math.floor(s/86400)+'d'; }
 
-/* ---------- store ---------- */
-let S;
-const ui = { view:'welcome', tab:'today', board:'overall', draft:null, err:'', pick:null };
-
-function load(){ try { const r = localStorage.getItem(KEY); if (r) return JSON.parse(r); } catch(e){} return seed(); }
-function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){} }
-
-function seed(){
-  const t = ymd(new Date());
-  const s = { group:{code:'DEMO', name:'Demo crew'}, users:{}, feed:[], dayOffset:0, me:null };
-  const mk = (id,name,color,startAgo,p,items,goals) => {
-    s.users[id] = { id, name, color, pin:'0000', bot:true, p, startDate:addDays(t,-startAgo),
-      items: items.map(([label,weight],i) => ({id:id+'i'+i, label, weight})),
-      goals: goals.map((g,i) => ({id:id+'g'+i, ...g, logs:[]})), days:{}, posted:{} };
-  };
-  mk('josh','Josh',COLORS[0],11,.95,[['45 min workout',3],['Drink 3L water',1],['Read 10 pages',2],['No junk food',2],['No phone after 10pm',2],['Progress photo',1]],
-     [{label:'Push-ups (one set)',unit:'reps',start:20,target:50,shared:true}]);
-  mk('liam','Liam',COLORS[1],11,.85,[['Gym session',3],['10,000 steps',2],['Protein with every meal',1],['Bed by 10:30',2],['Read 10 pages',1]],
-     [{label:'Weight',unit:'kg',start:68,target:74,shared:true}]);
-  mk('noah','Noah',COLORS[2],9,.72,[['Run or ride 30 min',3],['Drink 3L water',1],['Devotion / quiet time',2],['No energy drinks',2],['Study 1 hour',2]],
-     [{label:'5 km run time',unit:'min',start:31,target:25,shared:false}]);
-  for (const u of Object.values(s.users)) for (const g of u.goals){
-    const n = diff(u.startDate,t);
-    for (let d=0; d<=n; d+=3){
-      const f = Math.max(0, Math.min(1,(d/LEN)*1.3*u.p) + (d ? (hash(u.id+d)-.5)*.08 : 0));
-      g.logs.push({date:addDays(u.startDate,d), value:+(g.start+(g.target-g.start)*f).toFixed(1)});
-    }
-  }
-  const hrs = h => Date.now()-h*36e5;
-  s.feed = [
-    {id:uid(),userId:'josh',text:'Day 11 done. 100% 💯',ts:hrs(20),likes:['liam','noah'],comments:[{userId:'liam',text:'Machine.',ts:hrs(19)}]},
-    {id:uid(),userId:'noah',text:'Day 7 was rough. Missed two things. Back on it today.',ts:hrs(50),likes:['josh'],comments:[{userId:'josh',text:"One bad day doesn't make a bad week. Go.",ts:hrs(48)}]},
-    {id:uid(),userId:'liam',text:'New PB on bench this arvo 💪',ts:hrs(75),likes:['josh','noah'],comments:[]}
-  ];
-  return s;
+/* ---------- connection ---------- */
+const SB_URL = 'https://ifuuarfpkusckedjjfzi.supabase.co';
+const SB_KEY = 'sb_publishable_WhEGS2WreSyNn4IHRcwdrQ_YVdQAyg2'; // public app key, safe to ship
+const SESSION = 'li50-session';
+async function rpc(fn, args){
+  let r;
+  try { r = await fetch(`${SB_URL}/rest/v1/rpc/${fn}`, { method:'POST', headers:{ apikey:SB_KEY, 'Content-Type':'application/json' }, body:JSON.stringify(args || {}) }); }
+  catch(e){ throw new Error('offline'); }
+  const t = await r.text(); let j = null; try { j = t ? JSON.parse(t) : null; } catch(e){}
+  if (!r.ok) throw new Error((j && j.message) || 'server');
+  return j;
 }
+const ERR = {
+  bad_code:"That crew code doesn't exist. Check it with whoever invited you.",
+  name_taken:'Someone in the crew already has that name.',
+  bad_pin:"PIN doesn't match.", locked:'Too many wrong PINs. Try again in 15 minutes.',
+  offline:"Can't connect. Check your internet and try again.",
+  photo_too_big:'That photo is too big.', day_closed:"That day's closed now.", bad_token:'Please log in again.'
+};
+const errMsg = e => ERR[e.message] || 'Something went wrong. Try again.';
+function getSession(){ try { return JSON.parse(localStorage.getItem(SESSION)); } catch(e){ return null; } }
+function setSession(x){ try { x ? localStorage.setItem(SESSION, JSON.stringify(x)) : localStorage.removeItem(SESSION); } catch(e){} }
 
-/* Demo crew members log automatically so the group view feels alive */
-function fillBots(){
-  const t = today();
-  for (const u of Object.values(S.users)){
-    if (!u.bot) continue;
-    const last = addDays(u.startDate, LEN-1), end = t < last ? t : last;
-    for (let d = u.startDate; d <= end; d = addDays(d,1)){
-      if (u.days[d]) continue;
-      u.days[d] = u.items.filter(it => hash(u.id+d+it.id) < u.p).map(it => it.id);
-      if (d === t && score(u,d) === 100 && !u.posted[d]){
-        u.posted[d] = 1;
-        S.feed.push({id:uid(),userId:u.id,text:`Day ${diff(u.startDate,d)+1} done. 100% 💯`,ts:nowMs()-36e5*(1+hash(u.id+d)*4),likes:[],comments:[]});
-      }
-    }
+/* ---------- state ---------- */
+let S = null;                    // the crew, as last loaded from the server
+let session = getSession();      // { code, token } for whoever is logged in on this device
+const ui = { view:'welcome', tab:'today', board:'overall', draft:null, err:'', pick:null, jf:{}, loading:!!session };
+
+async function refresh(){
+  if (!session) return;
+  try {
+    const d = await rpc('get_crew', { p_token: session.token });
+    const users = {};
+    for (const m of d.members) users[m.id] = { ...m, days: m.days || {},
+      goals: (m.goals || []).map(g => ({ ...g, start: g.start != null ? +g.start : g.start, target: g.target != null ? +g.target : g.target,
+        logs: (g.logs || []).map(l => ({ date: l.date, value: +l.value })) })) };
+    S = { group: d.crew, users, feed: d.feed, me: d.me };
+  } catch(e){
+    if (e.message === 'bad_token'){ session = null; setSession(null); S = null; ui.view = 'welcome'; }
+    else if (!S) toast(errMsg(e));
   }
+  ui.loading = false;
 }
+let saveQ = Promise.resolve();
+const queue = fn => (saveQ = saveQ.then(fn, fn));
 
 /* ---------- scoring ---------- */
 function score(u,d){
@@ -336,7 +333,7 @@ function bestStreak(u){ let b=0,c=0; const n = Math.min(dayNum(u),LEN);
   for (let i=0;i<n;i++){ if (score(u,addDays(u.startDate,i))===100){ c++; b=Math.max(b,c); } else c=0; } return b; }
 const fullDays = u => counted(u).filter(d => score(u,d)===100).length;
 const cur = g => g.logs.length ? g.logs[g.logs.length-1].value : g.start;
-function pct(g){ const span = g.target-g.start; return span ? Math.round((cur(g)-g.start)/span*100) : 100; }
+function pct(g){ if (g.pct != null) return g.pct; const span = g.target-g.start; return span ? Math.round((cur(g)-g.start)/span*100) : 100; }
 const clamp = v => Math.max(0, Math.min(100, v));
 
 /* ---------- brand ---------- */
@@ -391,13 +388,12 @@ function vWelcome(){
     <button class="btn primary" data-a="go" data-v="join">Start my 50</button>
     <button class="btn ghost" data-a="go" data-v="login">I'm already in</button>
     <p class="built">BUILT BY CARTER</p>
-    <p class="demo-note">Demo version · crew code <b>DEMO</b></p>
   </div>`;
 }
 function vJoin(){
   return `<div class="eyebrow" style="margin-top:8px">Join a crew</div><h2 style="margin:6px 0 18px">Who's taking it on?</h2>
-    <div class="field"><label>Crew code</label><input class="input" id="j-code" value="DEMO" autocapitalize="characters"></div>
-    <div class="field"><label>Your name</label><input class="input" id="j-name" placeholder="First name" maxlength="20"></div>
+    <div class="field"><label>Crew code</label><input class="input" id="j-code" value="${esc(ui.jf.code||'')}" placeholder="From whoever invited you" autocapitalize="characters"></div>
+    <div class="field"><label>Your name</label><input class="input" id="j-name" value="${esc(ui.jf.name||'')}" placeholder="First name" maxlength="20"></div>
     <div class="field"><label>4-digit PIN (so only you can tick your list)</label><input class="input" id="j-pin" inputmode="numeric" maxlength="4" placeholder="••••" type="password"></div>
     <div class="field"><label>Profile photo (optional)</label><label class="photopick"><span class="pp" id="j-prev">${ui.joinPhoto?`<img src="${ui.joinPhoto}" alt="">`:'+'}</span><span id="j-ptext">${ui.joinPhoto?'Change photo':'Add a photo'}</span><input type="file" accept="image/*" id="j-photo" hidden></label></div>
     ${ui.err?`<div class="err">${ui.err}</div>`:''}
@@ -451,14 +447,18 @@ function vLock(){
       <button class="btn primary" data-a="lock">🔒 Lock in for 50 days</button></div></div>`;
 }
 function vLogin(){
-  const us = Object.values(S.users);
-  return `<div class="eyebrow" style="margin-top:8px">Welcome back</div><h2 style="margin:6px 0 18px">Who are you?</h2>
-    ${us.map(u=>`<button class="member ${ui.pick===u.id?'on':''}" data-a="pick" data-v="${u.id}">${avatar(u)}${esc(u.name)}<span class="mute" style="margin-left:auto;font-size:13px">${dayNum(u)<1?'Starts soon':dayNum(u)>LEN?'Finished':'Day '+dayNum(u)}</span></button>`).join('')}
+  const c = ui.loginCrew, err = ui.err ? `<div class="err">${ui.err}</div>` : '';
+  if (!c) return `<div class="eyebrow" style="margin-top:8px">Welcome back</div><h2 style="margin:6px 0 18px">What's your crew code?</h2>
+    <div class="field"><label>Crew code</label><input class="input" id="l-code" value="${esc(ui.jf.code||'')}" autocapitalize="characters"></div>
+    ${err}<button class="btn primary" data-a="find-crew">Next</button>
+    <button class="btn ghost" data-a="go" data-v="welcome">Back</button>`;
+  return `<div class="eyebrow" style="margin-top:8px">${esc(c.name)}</div><h2 style="margin:6px 0 18px">Who are you?</h2>
+    ${c.members.length ? '' : '<p class="mute">Nobody has joined this crew yet.</p>'}
+    ${c.members.map(u=>`<button class="member ${ui.pick===u.id?'on':''}" data-a="pick" data-v="${u.id}">${avatar(u)}${esc(u.name)}<span class="mute" style="margin-left:auto;font-size:13px">${dayNum(u)<1?'Starts soon':dayNum(u)>LEN?'Finished':'Day '+dayNum(u)}</span></button>`).join('')}
     ${ui.pick?`<div class="field" style="margin-top:14px"><label>PIN</label><input class="input" id="l-pin" inputmode="numeric" maxlength="4" type="password" placeholder="••••" autofocus></div>`:''}
-    ${ui.err?`<div class="err">${ui.err}</div>`:''}
+    ${err}
     <button class="btn primary" data-a="login" ${ui.pick?'':'disabled'} style="margin-top:6px">Log in</button>
-    <button class="btn ghost" data-a="go" data-v="welcome">Back</button>
-    <p class="demo-note">Demo crew members (Josh, Liam, Noah) use PIN 0000</p>`;
+    <button class="btn ghost" data-a="go" data-v="login">Back</button>`;
 }
 
 /* ---------- main tabs ---------- */
@@ -500,7 +500,9 @@ function tCrew(me){
       return `<div class="post">${avatar(u)}<div class="pbody"><div class="phead"><b>${esc(u.name)}</b><span class="mute">${ago(p.ts)}</span></div><p>${esc(p.text)}</p>
         <div class="pact"><button class="react ${liked?'on':''}" data-a="like" data-v="${p.id}">👍 ${p.likes.length||''}</button><span class="mute">💬 ${p.comments.length}</span></div>
         ${p.comments.map(c=>{ const cu = S.users[c.userId]; return `<div class="cm"><b>${esc(cu?cu.name:'?')}</b> ${esc(c.text)}</div>`; }).join('')}
-        <div class="cbox"><input id="c-${p.id}" placeholder="Add a comment…" maxlength="200"><button data-a="comment" data-v="${p.id}">Send</button></div></div></div>`; }).join('')}</div>`;
+        <div class="cbox"><input id="c-${p.id}" placeholder="Add a comment…" maxlength="200"><button data-a="comment" data-v="${p.id}">Send</button></div></div></div>`; }).join('')}</div>
+    <div class="card"><h3>Invite mates</h3><p class="mute" style="font-size:14px;margin-top:4px">Send them the link and this crew code.</p>
+      <div class="row" style="justify-content:space-between;margin-top:10px"><span class="big" style="font-size:22px">${esc(S.group.code)}</span><button class="sbtn" data-a="copy-code">Copy invite</button></div></div>`;
 }
 function tMe(u){
   const t = today(), n = dayNum(u);
@@ -521,11 +523,6 @@ function tMe(u){
     <div class="card"><div class="hd"><h3>My list</h3><span class="badge">🔒 Locked</span></div>
       <ul class="sumlist">${u.items.map(i=>`<li><span>${esc(i.label)}</span>${pips(i.weight)}</li>`).join('')}</ul></div>
     <div class="card"><button class="linkbtn" data-a="logout">Log out</button></div>
-    <div class="card" style="border-style:dashed"><div class="eyebrow" style="margin-bottom:6px">Demo tools</div>
-      <p class="mute" style="font-size:13px;margin-bottom:6px">This demo keeps data in this browser only. ${S.dayOffset?`Viewing as <b style="color:var(--text)">${fmt(t)}</b>.`:''}</p>
-      <button class="linkbtn" data-a="jump">⏩ Skip ahead one day</button>
-      ${S.dayOffset?`<button class="linkbtn" data-a="jump0">↩︎ Back to real today</button>`:''}
-      <button class="linkbtn" data-a="reset">Reset demo</button></div>
     <p class="built" style="text-align:center;margin:8px 0 0">LOCKED IN 50 · BUILT BY CARTER</p>`;
 }
 const ICONS = {
@@ -543,8 +540,8 @@ function vMain(u){
 /* ---------- render ---------- */
 const $app = document.getElementById('app');
 function render(){
-  fillBots(); save();
-  const me = S.me && S.users[S.me];
+  if (ui.loading){ $app.innerHTML = `<div class="welcome" style="align-items:center">${badge(96, true)}<p class="mute" style="margin-top:18px">Loading your crew…</p></div>`; return; }
+  const me = S && S.me && S.users[S.me];
   if (me) $app.innerHTML = vMain(me);
   else $app.innerHTML = ({welcome:vWelcome, join:vJoin, list:vList, goals:vGoals, lock:vLock, login:vLogin}[ui.view] || vWelcome)();
 }
@@ -556,20 +553,26 @@ function modal(title, body, ok, fn){
   m.classList.add('show');
   m.onclick = e => { const k = e.target.dataset.m; if (k==='ok'){ m.classList.remove('show'); fn(); } else if (k==='x' || e.target===m) m.classList.remove('show'); };
 }
-function post(userId, text){ S.feed.push({id:uid(), userId, text, ts:nowMs(), likes:[], comments:[]}); }
 
 /* ---------- actions ---------- */
-function act(a, v, el){
-  const me = S.me && S.users[S.me], d = ui.draft;
+async function act(a, v, el){
+  const me = S && S.me && S.users[S.me], d = ui.draft, tok = session && session.token;
+  const busy = (t) => { if (el){ el.disabled = true; if (t) el.textContent = t; } };
   switch(a){
-    case 'go': ui.view = v; ui.err = ''; if (v==='welcome') ui.joinPhoto = null; if (v==='login') ui.pick = null; break;
+    case 'go': ui.view = v; ui.err = ''; if (v==='welcome') ui.joinPhoto = null; if (v==='login'){ ui.pick = null; ui.loginCrew = null; } break;
     case 'join': {
       const code = val('j-code').toUpperCase(), name = val('j-name'), pin = val('j-pin');
-      if (code !== S.group.code) { ui.err = "That crew code doesn't match. (Use DEMO.)"; break; }
+      ui.jf = { code, name };
+      if (!code) { ui.err = 'Enter your crew code.'; break; }
       if (!name) { ui.err = 'Add your name.'; break; }
-      if (Object.values(S.users).some(u=>u.name.toLowerCase()===name.toLowerCase())) { ui.err = 'Someone in the crew already has that name.'; break; }
       if (!/^\d{4}$/.test(pin)) { ui.err = 'PIN needs to be 4 digits.'; break; }
-      ui.err = ''; ui.draft = {name, pin, photo:ui.joinPhoto||null, items:[], goals:[], startIn:0}; ui.view = 'list'; break;
+      busy('Checking…');
+      try {
+        const c = await rpc('crew_members', { p_code: code });
+        if (c.members.some(u=>u.name.toLowerCase()===name.toLowerCase())) { ui.err = ERR.name_taken; break; }
+        ui.err = ''; ui.draft = { code, used: c.members.map(m=>m.color), name, pin, photo: ui.joinPhoto || null, items:[], goals:[], startIn:0 }; ui.view = 'list';
+      } catch(e){ ui.err = errMsg(e); }
+      break;
     }
     case 'sugg': if (d.items.length < MAX_ITEMS) d.items.push({label:v, weight:2}); break;
     case 'add-item': {
@@ -589,47 +592,81 @@ function act(a, v, el){
     }
     case 'start': d.startIn = +v; break;
     case 'lock':
-      modal('Lock it in?', "No edits to your list or goals for 50 days. Miss a day and it counts as 0%. You in?", "I'm in", () => {
-        const id = uid(), start = addDays(today(), d.startIn), used = Object.values(S.users).map(u=>u.color);
-        S.users[id] = { id, name:d.name, pin:d.pin, photo:d.photo, color: COLORS.find(c=>!used.includes(c)) || COLORS[0], bot:false, startDate:start,
-          items: d.items.map((it,i)=>({id:id+'i'+i, label:it.label, weight:it.weight})),
-          goals: d.goals.map((g,i)=>({id:id+'g'+i, label:String(g.label).trim(), unit:String(g.unit).trim(), start:+g.start, target:+g.target, shared:!!g.shared, logs:[{date:start, value:+g.start}]})),
-          days:{}, posted:{} };
-        post(id, `Locked in for 50 days 🔒 Starting ${d.startIn ? 'tomorrow' : 'today'}.`);
-        S.me = id; ui.tab = 'today'; ui.draft = null; render(); scrollTo(0,0); toast('Locked in. Day 1, let\'s go.');
+      modal('Lock it in?', "No edits to your list or goals for 50 days. Miss a day and it counts as 0%. You in?", "I'm in", async () => {
+        toast('Locking in…');
+        try {
+          const r = await rpc('join_crew', { p_code:d.code, p_name:d.name, p_pin:d.pin,
+            p_color: COLORS.find(c=>!d.used.includes(c)) || COLORS[0], p_photo:d.photo, p_start:addDays(today(), d.startIn),
+            p_items: d.items.map((it,i)=>({id:'i'+i, label:it.label, weight:it.weight})),
+            p_goals: d.goals.map(g=>({label:String(g.label).trim(), unit:String(g.unit).trim(), start:+g.start, target:+g.target, shared:!!g.shared})) });
+          session = { code:d.code, token:r.token }; setSession(session);
+          ui.draft = null; ui.joinPhoto = null; ui.tab = 'today'; ui.loading = true; render();
+          await refresh(); render(); scrollTo(0,0); toast("Locked in. Let's go.");
+        } catch(e){ toast(errMsg(e)); }
       }); return;
+    case 'find-crew': {
+      const code = val('l-code').toUpperCase(); if (!code) return;
+      ui.jf.code = code; busy('Finding…');
+      try { ui.loginCrew = await rpc('crew_members', { p_code: code }); ui.loginCrew.code = code; ui.pick = null; ui.err = ''; }
+      catch(e){ ui.err = errMsg(e); }
+      break;
+    }
     case 'pick': ui.pick = v; ui.err = ''; break;
     case 'login': {
-      const u = S.users[ui.pick]; if (!u) return;
-      if (val('l-pin') !== u.pin) { ui.err = "PIN doesn't match."; break; }
-      S.me = u.id; ui.err = ''; ui.tab = 'today'; break;
+      const pin = val('l-pin'); if (!/^\d{4}$/.test(pin)) { ui.err = 'Enter your 4-digit PIN.'; break; }
+      busy('Logging in…');
+      try {
+        const r = await rpc('sign_in', { p_code: ui.loginCrew.code, p_member: ui.pick, p_pin: pin });
+        if (r.error) { ui.err = ERR[r.error] || 'Try again.'; break; }
+        session = { code: ui.loginCrew.code, token: r.token }; setSession(session);
+        ui.err = ''; ui.tab = 'today'; ui.loading = true; render(); await refresh();
+      } catch(e){ ui.err = errMsg(e); }
+      break;
     }
     case 'tab': ui.tab = v; render(); scrollTo(0,0); return;
     case 'tick': {
       const t = today(), arr = me.days[t] || (me.days[t] = []), i = arr.indexOf(v);
       i >= 0 ? arr.splice(i,1) : arr.push(v);
-      if (score(me,t) === 100 && !me.posted[t]) { me.posted[t] = 1; post(me.id, `Day ${dayNum(me)} done. 100% 💯`); setTimeout(()=>toast('💯 Perfect day. Posted to the crew.'), 50); }
-      break;
+      const done = [...arr], perfect = score(me,t) === 100, n = dayNum(me);
+      render();
+      queue(() => rpc('set_day', { p_token:tok, p_day:t, p_done:done, p_perfect:perfect, p_day_num:n })
+        .then(() => { if (perfect) toast('💯 Perfect day. Posted to the crew.'); })
+        .catch(async e => { toast(errMsg(e)); await refresh(); render(); }));
+      return;
     }
     case 'board': ui.board = v; break;
-    case 'post': { const t = val('post-text'); if (!t) return; post(me.id, t); break; }
-    case 'like': { const p = S.feed.find(p=>p.id===v); const i = p.likes.indexOf(me.id); i>=0 ? p.likes.splice(i,1) : p.likes.push(me.id); break; }
-    case 'comment': { const t = val('c-'+v); if (!t) return; S.feed.find(p=>p.id===v).comments.push({userId:me.id, text:t, ts:nowMs()}); break; }
-    case 'log': {
-      const raw = val('gl-'+v), num = parseFloat(raw); if (isNaN(num)) { toast('Enter a number'); return; }
-      const g = me.goals.find(g=>g.id===v), t = today(), was = pct(g);
-      g.logs = g.logs.filter(l=>l.date!==t); g.logs.push({date:t, value:num}); g.logs.sort((a,b)=>a.date<b.date?-1:1);
-      if (g.shared && pct(g) >= 100 && was < 100) post(me.id, `Hit my goal: ${g.label} 🎯`);
-      toast('Logged'); break;
+    case 'post': {
+      const t = val('post-text'); if (!t) return; busy();
+      try { await rpc('add_post', { p_token:tok, p_text:t }); await refresh(); } catch(e){ toast(errMsg(e)); }
+      break;
     }
-    case 'rm-photo': delete me.photo; toast('Photo removed'); break;
-    case 'logout': S.me = null; ui.view = 'welcome'; break;
-    case 'jump': S.dayOffset += 1; render(); toast('Now: ' + fmt(today())); return;
-    case 'jump0': S.dayOffset = 0; break;
-    case 'reset':
-      modal('Reset the demo?', 'This clears everyone\'s progress on this device and starts fresh.', 'Reset', () => {
-        try { localStorage.removeItem(KEY); } catch(e){}
-        S = null; S = seed(); ui.view = 'welcome'; ui.tab = 'today'; render(); scrollTo(0,0);
+    case 'like': {
+      const p = S.feed.find(p=>p.id===v); const i = p.likes.indexOf(me.id); i>=0 ? p.likes.splice(i,1) : p.likes.push(me.id); render();
+      try { await rpc('toggle_like', { p_token:tok, p_post:v }); } catch(e){ toast(errMsg(e)); await refresh(); }
+      break;
+    }
+    case 'comment': {
+      const t = val('c-'+v); if (!t) return; busy();
+      try { await rpc('add_comment', { p_token:tok, p_post:v, p_text:t }); await refresh(); } catch(e){ toast(errMsg(e)); }
+      break;
+    }
+    case 'log': {
+      const num = parseFloat(val('gl-'+v)); if (isNaN(num)) { toast('Enter a number'); return; }
+      busy();
+      try { await rpc('log_goal', { p_token:tok, p_goal:v, p_day:today(), p_value:num }); await refresh(); toast('Logged'); } catch(e){ toast(errMsg(e)); }
+      break;
+    }
+    case 'rm-photo':
+      try { await rpc('set_photo', { p_token:tok, p_photo:null }); delete me.photo; toast('Photo removed'); } catch(e){ toast(errMsg(e)); }
+      break;
+    case 'copy-code': {
+      const msg = `Join my Locked In 50 crew 🔒 ${location.origin}  Crew code: ${S.group.code}`;
+      try { await navigator.clipboard.writeText(msg); toast('Invite copied. Paste it to your mates.'); } catch(e){ toast('Crew code: ' + S.group.code); }
+      return;
+    }
+    case 'logout':
+      modal('Log out?', 'You can log back in any time with your crew code and PIN.', 'Log out', () => {
+        session = null; setSession(null); S = null; ui.view = 'welcome'; ui.tab = 'today'; render(); scrollTo(0,0);
       }); return;
   }
   render();
@@ -643,7 +680,7 @@ document.addEventListener('change', async e => {
   try {
     const url = await toAvatar(f);
     if (id === 'j-photo') { ui.joinPhoto = url; const p = document.getElementById('j-prev'); if (p) p.innerHTML = `<img src="${url}" alt="">`; const t = document.getElementById('j-ptext'); if (t) t.textContent = 'Change photo'; }
-    else { S.users[S.me].photo = url; render(); toast('Photo updated'); }
+    else { await rpc('set_photo', { p_token: session.token, p_photo: url }); S.users[S.me].photo = url; render(); toast('Photo updated'); }
   } catch(err) { toast("Couldn't read that image"); }
 });
 document.addEventListener('keydown', e => {
@@ -656,8 +693,17 @@ document.addEventListener('keydown', e => {
   else if (id === 'j-pin') act('join');
 });
 
-S = load();
+// Keep the crew feed fresh: every 30 seconds, and whenever the app comes back to the front.
+async function sync(){
+  if (!session || ui.loading || document.hidden) return;
+  const ae = document.activeElement; if (ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA')) return;
+  const y = scrollY; await refresh(); render(); scrollTo(0, y);
+}
+setInterval(sync, 30000);
+document.addEventListener('visibilitychange', sync);
+
 render();
+if (session) refresh().then(render);
 </script>
 </body>
 </html>

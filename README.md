@@ -13,5 +13,11 @@ A 50-day challenge app for a crew of mates:
 ## Stack
 
 - Single-page web app (`index.html`), installable to a phone home screen
-- Supabase for shared data (next step — the current build is a demo that saves on one device)
+- Supabase for shared data. Database setup: `supabase/schema.sql` (run once in the Supabase SQL Editor)
 - Netlify for hosting, auto-deployed from this repository
+
+## How access works
+
+- Joining needs the crew code; each person signs in with a name + 4-digit PIN (5 wrong tries = 15-minute lockout).
+- Database tables are locked. The app can only call the functions in `supabase/schema.sql`, which check the crew code or the person's sign-in token.
+- Other people's goals are only ever sent as a percentage, never the actual numbers.
