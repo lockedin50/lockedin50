@@ -8,7 +8,8 @@ A 50-day challenge app for a crew of mates:
 - Streaks: days in a row at 100%, front and centre.
 - Goal logging with history, charts and personal bests (PBs post to your crews).
 - Private daily trackers (calories, water, steps…), never shared or ranked.
-- Crews: anyone can start one and invite mates with a code or link (`/?join=CODE`). One person, one list, up to 10 crews. Captains can rename, reset the code and remove members.
+- Crews: anyone can start one and invite mates with a code or link (`/?join=CODE`). Up to 10 crews per person. Captains can rename, reset the code and remove members.
+- Separate 50-day challenges: when joining or starting a crew, carry over an existing 50 days or start fresh with a new list and goals just for that crew (switch what counts any time). Up to 5 running at once.
 - Crew leaderboard (7 days / overall / streak), feed with thumbs ups and comments.
 - The Ranks: public crew-vs-crew board (crews with 3+ active members), crew name and score only.
 

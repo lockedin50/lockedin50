@@ -271,6 +271,11 @@ nav button.on{color:var(--acc)}
 nav button{font-size:11px}
 
 .optc button{display:block;width:100%;text-align:left}
+.chopt{display:flex;gap:10px;align-items:flex-start;padding:11px 12px;border:1px solid var(--line);border-radius:12px;margin-bottom:6px;cursor:pointer}
+.chopt input{margin-top:3px;width:18px;height:18px;accent-color:var(--acc);flex:0 0 auto}
+.chopt b{display:block;font-size:14px}
+.chopt small{font-size:12px;color:var(--mute)}
+.chopt:has(input:checked){border-color:var(--acc);background:rgba(200,245,66,.05)}
 </style>
 </head>
 <body>
@@ -357,7 +362,7 @@ const parseGoal = (g, str) => g.kind === 'time' ? parseTime(str) : parseFloat(st
 /* ---------- connection ---------- */
 const SB_URL = 'https://ifuuarfpkusckedjjfzi.supabase.co';
 const SB_KEY = 'sb_publishable_WhEGS2WreSyNn4IHRcwdrQ_YVdQAyg2'; // public app key, safe to ship
-const SESSION = 'li50-session', CREWKEY = 'li50-crew';
+const SESSION = 'li50-session', CREWKEY = 'li50-crew', CHKEY = 'li50-ch';
 async function rpc(fn, args){
   let r;
   try { r = await fetch(`${SB_URL}/rest/v1/rpc/${fn}`, { method:'POST', headers:{ apikey:SB_KEY, 'Content-Type':'application/json' }, body:JSON.stringify(args || {}) }); }
@@ -375,7 +380,7 @@ const ERR = {
   offline:"Can't connect. Check your internet and try again.",
   photo_too_big:'That photo is too big.', day_closed:"That day's closed now.", bad_token:'Please log in again.',
   not_in_crew:"You're not in that crew any more.", too_many_crews:'That\'s the most crews you can be in (10).', crew_full:'That crew is full (50 people).',
-  bad_crew_name:'Crew names are 2–30 characters.', not_captain:'Only the crew captain can do that.', too_many_trackers:'You can have up to 4 trackers.'
+  bad_crew_name:'Crew names are 2–30 characters.', already_in_crew:"You're already in that crew.", too_many_challenges:'You can run up to 5 challenges at once.', not_captain:'Only the crew captain can do that.', too_many_trackers:'You can have up to 4 trackers.'
 };
 const errMsg = e => ERR[e.message] || 'Something went wrong. Try again.';
 const ls = { get(k){ try { return localStorage.getItem(k); } catch(e){ return null; } }, set(k,v){ try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k,v); } catch(e){} } };
@@ -385,16 +390,24 @@ function setSession(x){ ls.set(SESSION, x ? JSON.stringify(x) : null); }
 /* ---------- state ---------- */
 let session = getSession();            // { token } for whoever is logged in on this device
 let ME = null, CREW = null, BOARD = null;
-const ui = { view:'welcome', tab:'today', lb:'week', board:'week', crewId: ls.get(CREWKEY), draft:null, err:'', jf:{}, loading:!!session, pendingJoin:null, crewForm:null };
+const ui = { view:'welcome', tab:'today', lb:'week', board:'week', crewId: ls.get(CREWKEY), chId: ls.get(CHKEY), draft:null, err:'', jf:{}, loading:!!session, pendingJoin:null, crewForm:null };
 const tok = () => session && session.token;
+const CH = () => ME && (ME.challenges.find(c => c.id === ui.chId) || ME.challenges[0]);
+const allGoals = () => ME.challenges.flatMap(c => c.goals);
+const chName = id => { const c = ME && ME.challenges.find(x => x.id === id); return c ? c.name : ''; };
 
 function normGoals(gs){ return (gs || []).map(g => ({ ...g, start: g.start != null ? +g.start : g.start, target: g.target != null ? +g.target : g.target,
   logs: (g.logs || []).map(l => ({ date: l.date, value: +l.value })) })); }
 async function loadMe(){
   const m = await rpc('get_me', { p_token: tok() });
-  m.goals = normGoals(m.goals); m.days = m.days || {};
+  m.challenges = (m.challenges || []).map(c => ({ ...c, days: c.days || {}, goals: normGoals(c.goals) }));
   m.trackers = (m.trackers || []).map(t => ({ ...t, target: t.target != null ? +t.target : null, logs: Object.fromEntries(Object.entries(t.logs || {}).map(([k,v]) => [k, +v])) }));
   ME = m;
+  if (!ME.challenges.some(c => c.id === ui.chId)) {
+    const live = ME.challenges.filter(c => dayNum(c) <= LEN);
+    const pick = live.length ? live[live.length-1] : ME.challenges[ME.challenges.length-1];
+    ui.chId = pick ? pick.id : null; ls.set(CHKEY, ui.chId);
+  }
   if (ui.crewId !== '__add' && !ME.crews.some(c => c.id === ui.crewId)) { ui.crewId = ME.crews[0] ? ME.crews[0].id : null; ls.set(CREWKEY, ui.crewId); }
 }
 async function loadCrew(){
@@ -470,8 +483,8 @@ function ring(v){ const r=40, c=2*Math.PI*r;
   return `<div class="ring"><svg width="96" height="96"><circle cx="48" cy="48" r="${r}" stroke="#2A2E30" stroke-width="8" fill="none"/>
   <circle cx="48" cy="48" r="${r}" stroke="#C8F542" stroke-width="8" fill="none" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${c*(1-v/100)}" style="transition:stroke-dashoffset .4s"/></svg>
   <div class="val"><div><b>${v}%</b><small>today</small></div></div></div>`; }
-function spark(g){
-  const vals = [g.start, ...g.logs.filter(l => !(l.date === ME.startDate && l.value === g.start)).map(l=>l.value)]; if (vals.length < 2) return '';
+function spark(g, sd){
+  const vals = [g.start, ...g.logs.filter(l => !(l.date === sd && l.value === g.start)).map(l=>l.value)]; if (vals.length < 2) return '';
   const W=300,H=64,P=6, all=[...vals,g.target], mn=Math.min(...all), mx=Math.max(...all), rg=(mx-mn)||1;
   const y = v => H-P-(v-mn)/rg*(H-2*P), x = i => P+i*(W-2*P)/(vals.length-1);
   const pts = vals.map((v,i)=>`${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
@@ -482,6 +495,9 @@ function spark(g){
     <polyline points="${pts}" fill="none" stroke="#C8F542" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
     <circle cx="${x(vals.length-1)}" cy="${y(vals[vals.length-1])}" r="4" fill="#C8F542"/></svg>`;
 }
+const STEPMAP = { normal:{list:1,goals:2,trackers:3,crew:4,lock:5}, fresh:{list:1,goals:2,lock:3} };
+const stepN = v => (STEPMAP[ui.draft && ui.draft.mode==='fresh' ? 'fresh' : 'normal'])[v];
+const stepBar = v => steps(stepN(v), ui.draft && ui.draft.mode==='fresh' ? 3 : 5);
 const steps = (n, of=5) => `<div class="steps">${Array.from({length:of},(_,i)=>`<i class="${i<n?'on':''}"></i>`).join('')}</div>`;
 const err = () => ui.err ? `<div class="err">${esc(ui.err)}</div>` : '';
 const footer = (back, nextAction, nextLabel, disabled) => `<div class="footer"><div class="in row"><button class="btn ghost" style="flex:0 0 30%" data-a="go" data-v="${back}">Back</button>
@@ -541,7 +557,7 @@ function vAccount(){
 }
 function vList(){
   const d = ui.draft, have = d.items.map(i=>i.label.toLowerCase());
-  return `${steps(1)}<div class="eyebrow">Step 1 · Your daily list</div><h2 style="margin-top:6px">What will you do every day?</h2>
+  return `${stepBar('list')}<div class="eyebrow">Step 1 · ${d.mode==='fresh'?'New 50 days: your list':'Your daily list'}</div><h2 style="margin-top:6px">What will you do every day?</h2>
     <p class="sub">Add at least ${MIN_ITEMS}. Harder items count for more of your daily score.</p>
     <div class="count"><b>${d.items.length}</b> / ${MIN_ITEMS} minimum</div>
     ${d.items.map((it,i)=>`<div class="ditem"><span class="lbl">${esc(it.label)}</span>
@@ -549,11 +565,11 @@ function vList(){
       <button class="x" data-a="rm-item" data-v="${i}" aria-label="Remove">×</button></div>`).join('')}
     <div class="addrow"><input class="input" id="add-item" placeholder="Add your own…" maxlength="40"><button data-a="add-item">Add</button></div>
     <div class="chips">${SUGGESTIONS.filter(s=>!have.includes(s.toLowerCase())).slice(0,10).map(s=>`<button class="chip" data-a="sugg" data-v="${esc(s)}">+ ${esc(s)}</button>`).join('')}</div>
-    ${footer('account','to-goals','Next', d.items.length<MIN_ITEMS)}`;
+    ${footer(d.mode==='fresh'?'cancel-fresh':'account','to-goals','Next', d.items.length<MIN_ITEMS)}`;
 }
 function vGoals(){
   const d = ui.draft;
-  return `${steps(2)}<div class="eyebrow">Step 2 · Goals</div><h2 style="margin-top:6px">What are you chasing?</h2>
+  return `${stepBar('goals')}<div class="eyebrow">Step 2 · Goals</div><h2 style="margin-top:6px">What are you chasing?</h2>
     <p class="sub">Up to ${MAX_GOALS}. Log your number whenever you do it and watch it move. Works whether the number needs to go up or down.</p>
     ${d.goals.map((g,i)=>`<div class="card gcard">
       <div class="hd"><h3>Goal ${i+1}</h3><button class="x" data-a="rm-goal" data-v="${i}" aria-label="Remove goal">×</button></div>
@@ -603,19 +619,23 @@ function vCrewStep(){
 }
 function vLock(){
   const d = ui.draft, end = addDays(addDays(today(),d.startIn), LEN-1);
-  const crewLine = d.crewMode==='join' ? `Joining <b>${esc(d.joinName || d.joinCode)}</b>` : d.crewMode==='start' ? `Starting <b>${esc(d.crewName)}</b>` : 'No crew yet';
-  return `${steps(5)}<div class="eyebrow">Step 5 · Lock it in</div><h2 style="margin-top:6px">Last look, ${esc(d.username)}.</h2>
+  const ca = d.crewAction;
+  const crewLine = d.mode==='fresh'
+    ? (ca ? (ca.type==='join' ? `Joining <b>${esc(ca.name)}</b> with this one` : ca.type==='start' ? `Starting <b>${esc(ca.name)}</b> with this one` : `This replaces what counts in <b>${esc(ca.name)}</b>. Your other 50 days carry on.`) : 'Not in a crew yet. Add it to one any time.')
+    : d.crewMode==='join' ? `Joining <b>${esc(d.joinName || d.joinCode)}</b>` : d.crewMode==='start' ? `Starting <b>${esc(d.crewName)}</b>` : 'No crew yet';
+  return `${stepBar('lock')}<div class="eyebrow">Step ${stepN('lock')} · Lock it in</div><h2 style="margin-top:6px">Last look, ${esc(d.mode==='fresh' ? ME.username : d.username)}.</h2>
+    ${d.mode==='fresh' ? `<div class="field" style="margin-top:12px"><label>Name this 50 days</label><input class="input" data-d="chName" value="${esc(d.chName||'')}" placeholder="e.g. Run Club 50" maxlength="30"></div>` : ''}
     <p class="sub">Once you lock in, your list and goals can't change for 50 days.</p>
     <div class="row" style="margin-bottom:14px"><button class="opt ${d.startIn===0?'on':''}" data-a="start" data-v="0">Start today</button><button class="opt ${d.startIn===1?'on':''}" data-a="start" data-v="1">Start tomorrow</button></div>
     <div class="card"><div class="eyebrow" style="margin-bottom:6px">Daily list</div>
       <ul class="sumlist">${d.items.map(i=>`<li><span>${esc(i.label)}</span>${pips(i.weight)}</li>`).join('')}</ul></div>
     ${d.goals.length?`<div class="card"><div class="eyebrow" style="margin-bottom:6px">Goals</div>
       <ul class="sumlist">${d.goals.map(g=>`<li><span>${esc(g.label)}</span><span class="mute">${esc(g.start)} → ${esc(g.target)} ${g.kind==='time'?'':esc(g.unit)}</span></li>`).join('')}</ul></div>`:''}
-    ${d.trackers.length?`<div class="card"><div class="eyebrow" style="margin-bottom:6px">Private trackers</div>
+    ${d.mode!=='fresh' && d.trackers.length?`<div class="card"><div class="eyebrow" style="margin-bottom:6px">Private trackers</div>
       <ul class="sumlist">${d.trackers.map(t=>`<li><span>${esc(t.label)}</span><span class="mute">${t.target?esc(t.target)+' '+esc(t.unit)+' a day':''}</span></li>`).join('')}</ul></div>`:''}
     <div class="card"><div class="eyebrow" style="margin-bottom:6px">Crew</div><p style="font-size:15px">${crewLine}</p></div>
     <p class="mute" style="font-size:14px;text-align:center;margin-bottom:10px">Finish line: <b style="color:var(--text)">${fmt(end)}</b></p>
-    ${footer('crew','lock','🔒 Lock in for 50 days')}`;
+    ${footer(d.mode==='fresh'?'goals':'crew','lock','🔒 Lock in for 50 days')}`;
 }
 function vLogin(){
   return `<div class="eyebrow" style="margin-top:8px">Welcome back</div><h2 style="margin:6px 0 18px">Log in</h2>
@@ -641,7 +661,7 @@ function streakCard(u){
 }
 function trackCard(){
   const t = today();
-  const goals = ME.goals, trk = ME.trackers;
+  const goals = CH().goals, trk = ME.trackers;
   if (!goals.length && !trk.length) return '';
   return `<div class="card"><div class="hd"><h3>Track</h3><button class="tlink" data-a="tab" data-v="me">See progress</button></div>
     ${goals.map(g => { const todayLog = g.logs.find(l => l.date === t);
@@ -652,14 +672,20 @@ function trackCard(){
         <input id="tk-${tr.id}" inputmode="decimal" value="${v!=null?v:''}" placeholder="${esc(tr.unit || '0')}" aria-label="${esc(tr.label)} today"><button class="sm" data-a="log-tracker" data-v="${tr.id}">Save</button></div>`; }).join('')}
   </div>`;
 }
+function chSwitch(){
+  if (!ME || ME.challenges.length < 2) return '';
+  return `<div class="chiprow">${ME.challenges.map(c=>{ const crews = ME.crews.filter(x=>x.challengeId===c.id).map(x=>x.name);
+    return `<button class="cchip ${c.id===ui.chId?'on':''}" data-a="switch-ch" data-v="${c.id}">${esc(c.name)}${dayNum(c)>LEN?' ✓':''}</button>`; }).join('')}</div>
+    ${(() => { const crews = ME.crews.filter(x=>x.challengeId===ui.chId).map(x=>esc(x.name)); return `<p class="mute" style="font-size:12px;margin:-6px 0 12px">${crews.length ? 'Counts in ' + crews.join(', ') : 'Not in any crew'}</p>`; })()}`;
+}
 function tToday(u){
   const t = today(), n = dayNum(u);
-  if (n < 1) return `${a2hsBanner()}<div class="card center" style="padding:28px 18px"><div class="eyebrow">Locked in 🔒</div><h2 style="margin:8px 0">Day 1 starts tomorrow</h2>
+  if (n < 1) return `${a2hsBanner()}${chSwitch()}<div class="card center" style="padding:28px 18px"><div class="eyebrow">Locked in 🔒</div><h2 style="margin:8px 0">Day 1 starts tomorrow</h2>
     <p class="mute" style="margin-bottom:14px">Rest up. Here's what you signed up for.</p>
     <ul class="sumlist" style="text-align:left">${u.items.map(i=>`<li><span>${esc(i.label)}</span>${pips(i.weight)}</li>`).join('')}</ul></div>${trackCard()}`;
-  if (n > LEN) return tFinished(u) + trackCard();
+  if (n > LEN) return chSwitch() + tFinished(u) + trackCard();
   const sc = score(u,t), done = u.days[t] || [], q = quoteFor(n);
-  return `${a2hsBanner()}<div class="dayhead"><div><div class="eyebrow">Day</div><div class="daynum">${n}<span>/${LEN}</span></div></div>${ring(sc)}</div>
+  return `${a2hsBanner()}${chSwitch()}<div class="dayhead"><div><div class="eyebrow">Day</div><div class="daynum">${n}<span>/${LEN}</span></div></div>${ring(sc)}</div>
     <div class="track"><i style="width:${n/LEN*100}%"></i></div>
     ${streakCard(u)}
     <div class="pills"><span class="pill">${LEN-n} days to go</span><span class="pill">Avg ${avg(u)}%</span><span class="pill">${fullDays(u)} perfect days</span></div>
@@ -671,16 +697,29 @@ function tToday(u){
 }
 function tFinished(u){
   return `<div class="card center" style="padding:30px 18px"><div class="eyebrow">Challenge complete</div><div class="logo" style="font-size:40px;margin:10px 0">50 DAYS.<br><span style="font-size:60px;display:inline">DONE.</span></div>
-    <div class="stats" style="margin-top:18px"><div class="stat"><b>${avg(u)}%</b><small>avg score</small></div><div class="stat"><b>${fullDays(u)}</b><small>perfect days</small></div><div class="stat"><b>${bestStreak(u)}</b><small>best streak</small></div><div class="stat"><b>${ME.goals.filter(g=>pct(g)>=100).length}/${ME.goals.length}</b><small>goals hit</small></div></div>
-    ${ME.goals.map(g=>`<div class="gbar" style="text-align:left"><div class="t"><span>${esc(g.label)}</span><span>${gval(g,g.start)} → ${gval(g,cur(g))}</span></div><div class="bar"><i style="width:${clamp(pct(g))}%"></i></div></div>`).join('')}
+    <div class="stats" style="margin-top:18px"><div class="stat"><b>${avg(u)}%</b><small>avg score</small></div><div class="stat"><b>${fullDays(u)}</b><small>perfect days</small></div><div class="stat"><b>${bestStreak(u)}</b><small>best streak</small></div><div class="stat"><b>${u.goals.filter(g=>pct(g)>=100).length}/${u.goals.length}</b><small>goals hit</small></div></div>
+    ${u.goals.map(g=>`<div class="gbar" style="text-align:left"><div class="t"><span>${esc(g.label)}</span><span>${gval(g,g.start)} → ${gval(g,cur(g))}</span></div><div class="bar"><i style="width:${clamp(pct(g))}%"></i></div></div>`).join('')}
+    <button class="btn primary" style="margin-top:16px" data-a="new-ch">Start another 50</button>
   </div>`;
+}
+function chPicker(sel){
+  const live = ME.challenges.filter(c => dayNum(c) <= LEN);
+  if (!sel) sel = live.some(c=>c.id===ui.chId) ? ui.chId : (live[0] ? live[0].id : 'fresh');
+  return `<div class="eyebrow" style="margin:14px 0 6px">Which 50 days count in this crew?</div>
+    ${live.map(c=>`<label class="chopt"><input type="radio" name="chpick" value="${c.id}" ${c.id===sel?'checked':''}><span><b>Carry over: ${esc(c.name)}</b><small>${dayNum(c)<1?'Starts soon':'Day '+dayNum(c)} · ${c.items.length} items · keep your streak</small></span></label>`).join('')}
+    <label class="chopt"><input type="radio" name="chpick" value="fresh" ${sel==='fresh'?'checked':''}><span><b>Start fresh</b><small>New list and goals, new 50 days, just for this crew</small></span></label>`;
+}
+const pickVal = (root=document) => (root.querySelector('input[name=chpick]:checked') || {}).value;
+function startFresh(crewAction){
+  ui.draft = { mode:'fresh', items:[], goals:[], trackers:[], startIn:0, chName: crewAction ? crewAction.name : '', crewAction: crewAction || null };
+  ui.view = 'list'; ui.err = ''; render(); scrollTo(0,0);
 }
 function crewForms(){
   const f = ui.crewForm || 'join';
   return `<div class="card"><div class="seg" style="display:inline-flex;margin-bottom:12px"><button class="${f==='join'?'on':''}" data-a="crewform" data-v="join">Join a crew</button><button class="${f==='start'?'on':''}" data-a="crewform" data-v="start">Start a crew</button></div>
     ${f==='join'
-      ? `<p class="mute" style="font-size:14px;margin-bottom:8px">Enter the code a mate sent you.</p><div class="addrow" style="margin:0"><input class="input" id="cf-code" placeholder="LI50-XXXXX" autocapitalize="characters"><button data-a="join-crew">Join</button></div>`
-      : `<p class="mute" style="font-size:14px;margin-bottom:8px">Name your crew. You'll get a code and invite link to send your mates.</p><div class="addrow" style="margin:0"><input class="input" id="cf-name" placeholder="e.g. Gym Rats" maxlength="30"><button data-a="create-crew">Start</button></div>`}
+      ? `<p class="mute" style="font-size:14px;margin-bottom:8px">Enter the code a mate sent you.</p><input class="input" id="cf-code" placeholder="LI50-XXXXX" autocapitalize="characters" aria-label="Crew code">${chPicker()}<button class="btn primary" style="margin-top:8px" data-a="join-crew">Join crew</button>`
+      : `<p class="mute" style="font-size:14px;margin-bottom:8px">Name your crew. You'll get a code and invite link to send your mates.</p><input class="input" id="cf-name" placeholder="e.g. Gym Rats" maxlength="30" aria-label="Crew name">${chPicker()}<button class="btn primary" style="margin-top:8px" data-a="create-crew">Start crew</button>`}
     ${err()}</div>`;
 }
 function tCrew(){
@@ -697,6 +736,7 @@ function tCrew(){
   const isCaptain = CREW.captainId === me.id;
   return `${chips}
     <div class="crewhead"><div><h2>${esc(CREW.name)}</h2><div class="mute" style="font-size:13px">${all.length} ${all.length===1?'member':'members'}${isCaptain?' · You\'re captain':''}</div></div>${crest(CREW.name)}</div>
+    ${(() => { const my = ME.crews.find(c=>c.id===CREW.id); return my ? `<div class="card" style="display:flex;align-items:center;gap:10px;padding:12px 14px"><div style="flex:1;min-width:0"><div class="eyebrow">Counting here</div><b style="font-size:15px">${esc(chName(my.challengeId))}</b></div><button class="sm" style="padding:9px 12px;border-radius:10px;background:var(--card2);border:1px solid var(--line);font-weight:700;font-size:13px" data-a="change-ch">Change</button></div>` : ''; })()}
     <div class="card lb"><div class="hd"><h3>Leaderboard</h3>
       <div class="seg">${[['week','7 days'],['overall','Overall'],['streak','Streak']].map(([k,l])=>`<button class="${key===k?'on':''}" data-a="lb" data-v="${k}">${l}</button>`).join('')}</div></div>
     ${rows.length ? rows.map((r,i)=>`<div class="lrow ${i===0?'first':''}"><span class="rank">${i+1}</span>${avatar(r.u)}<div class="who"><b class="${r.u.id===me.id?'me':''}">${esc(r.u.name)}${r.u.id===me.id?' (you)':''}</b><small>${dayNum(r.u)>LEN?'Finished':'Day '+dayNum(r.u)} · 🔥 ${r.st}</small></div><span class="sc">${key==='streak' ? r.s + '<span style="font-size:13px"> 🔥</span>' : r.s + '%'}</span></div>`).join('') : '<p class="mute">Nobody has started yet.</p>'}
@@ -740,9 +780,10 @@ function tMe(u){
     if (d > t) c = 'fut'; else { const s = score(u,d); c = d===t && s===0 ? '' : s===0 ? 'z' : s<50 ? 'l1' : s<100 ? 'l2' : 'l3'; }
     return `<i class="${c} ${d===t?'today':''}" title="Day ${i+1} · ${fmt(d)}"></i>`; }).join('');
   const last14 = Array.from({length:14},(_,i)=>addDays(t, i-13));
-  return `<div class="row" style="margin-bottom:16px;gap:14px"><label class="avedit" aria-label="Change profile photo">${avatar(u,64)}<span class="cam"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></span><input type="file" accept="image/*" id="photo-in" hidden></label><div><h2 style="font-size:24px">${esc(u.username)}</h2>
-      <div class="mute" style="font-size:13px">${fmt(u.startDate)} → ${fmt(addDays(u.startDate,LEN-1))}</div>
-      <div style="font-size:12px;margin-top:4px" class="mute">${u.photo?'Tap photo to change · <button class="tlink" data-a="rm-photo">Remove</button>':'Tap to add a photo'}</div></div></div>
+  return `<div class="row" style="margin-bottom:16px;gap:14px"><label class="avedit" aria-label="Change profile photo">${avatar(ME,64)}<span class="cam"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></span><input type="file" accept="image/*" id="photo-in" hidden></label><div><h2 style="font-size:24px">${esc(ME.username)}</h2>
+      <div class="mute" style="font-size:13px">${esc(u.name)}: ${fmt(u.startDate)} → ${fmt(addDays(u.startDate,LEN-1))}</div>
+      <div style="font-size:12px;margin-top:4px" class="mute">${ME.photo?'Tap photo to change · <button class="tlink" data-a="rm-photo">Remove</button>':'Tap to add a photo'}</div></div></div>
+    ${chSwitch()}
     <div class="stats"><div class="stat"><b>${avg(u)}%</b><small>avg</small></div><div class="stat"><b>${fullDays(u)}</b><small>perfect</small></div><div class="stat"><b>${streak(u)}</b><small>streak</small></div><div class="stat"><b>${bestStreak(u)}</b><small>best</small></div></div>
     <div class="card"><div class="hd"><h3>50 days</h3><span class="mute" style="font-size:13px">${n<1?'Not started':n>LEN?'Complete':'Day '+n}</span></div>
       <div class="cal">${cells}</div>
@@ -750,12 +791,12 @@ function tMe(u){
     ${u.goals.map(g=>{ const p = pct(g), best = bestOf(g), hist = [...g.logs].reverse().slice(0,10);
       return `<div class="card"><div class="hd"><h3>${esc(g.label)}</h3><span class="badge ${g.shared?'on':''}">${g.shared?'% shared':'Private'}</span></div>
       <div class="row" style="justify-content:space-between;align-items:baseline"><span class="big">${gval(g, cur(g))}</span><span class="mute" style="font-size:13px">${gval(g,g.start)} → ${gval(g,g.target)} · <b style="color:var(--text)">${p}%</b></span></div>
-      <div class="bar" style="margin-top:10px"><i style="width:${clamp(p)}%"></i></div>${spark(g)}
+      <div class="bar" style="margin-top:10px"><i style="width:${clamp(p)}%"></i></div>${spark(g, u.startDate)}
       ${best!=null?`<p class="mute" style="font-size:13px;margin-top:8px">🏆 Personal best: <b style="color:var(--text)">${gval(g,best)}</b></p>`:''}
       <div class="gl"><input class="input" id="gl-${g.id}" inputmode="${g.kind==='time'?'text':'decimal'}" placeholder="${g.kind==='time'?'Today\'s time, e.g. 24:38':'Today\'s '+esc(g.unit||'number')}"><button data-a="log" data-v="${g.id}">Log</button></div>
       ${hist.length?`<ul class="hist">${hist.map(l=>`<li><span>${fmt(l.date)}</span>${l.value===best&&g.logs.length>1?'<span class="pbt">PB</span>':''}<b>${gval(g,l.value)}</b><button class="x" data-a="del-log" data-v="${g.id}|${l.date}" aria-label="Delete ${fmt(l.date)} entry">×</button></li>`).join('')}</ul>`:''}
       </div>`; }).join('')}
-    ${u.trackers.map(tr=>{ const vals = last14.map(d=>tr.logs[d]), have = vals.filter(v=>v!=null), wk = last14.slice(-7).map(d=>tr.logs[d]).filter(v=>v!=null);
+    ${ME.trackers.map(tr=>{ const vals = last14.map(d=>tr.logs[d]), have = vals.filter(v=>v!=null), wk = last14.slice(-7).map(d=>tr.logs[d]).filter(v=>v!=null);
       const mx = Math.max(...have, tr.target||0, 1);
       return `<div class="card"><div class="hd"><h3>${esc(tr.label)}</h3><span class="badge">🔒 Private</span></div>
       <div class="row" style="justify-content:space-between;align-items:baseline"><span class="big">${tr.logs[t]!=null?num(tr.logs[t]):'–'} <span class="mute" style="font-size:15px;font-family:Archivo">${esc(tr.unit)} today</span></span>
@@ -763,12 +804,14 @@ function tMe(u){
       <div class="bars" aria-label="Last 14 days">${tr.target?`<span class="tline" style="bottom:${tr.target/mx*100}%"></span>`:''}${vals.map((v,i)=>`<i class="${v==null?'':(tr.target&&v>=tr.target?'hit':'v')}" style="height:${v==null?2:Math.max(4, v/mx*100)}%" title="${fmt(last14[i])}: ${v!=null?num(v):'no entry'}"></i>`).join('')}</div>
       <div class="gl"><input class="input" id="tk-${tr.id}" inputmode="decimal" value="${tr.logs[t]!=null?tr.logs[t]:''}" placeholder="Today's ${esc(tr.unit||'number')}"><button data-a="log-tracker" data-v="${tr.id}">Save</button></div>
       <button class="tlink" style="margin-top:10px" data-a="rm-tracker" data-v="${tr.id}">Remove tracker</button></div>`; }).join('')}
-    ${u.trackers.length < MAX_TRACKERS ? `<div class="card"><h3>Add a private tracker</h3><p class="mute" style="font-size:13px;margin:4px 0 10px">A number to log each day. Only you see it.</p>
-      <div class="chips" style="margin:0">${Object.entries({calories:'+ Calories',water:'+ Water',steps:'+ Steps',protein:'+ Protein',custom:'+ Custom'}).filter(([k])=>k==='custom'||!u.trackers.some(t=>t.label===TRACKER_TEMPLATES[k].label)).map(([k,l])=>`<button class="chip" data-a="add-tracker" data-v="${k}">${l}</button>`).join('')}</div></div>` : ''}
+    ${ME.trackers.length < MAX_TRACKERS ? `<div class="card"><h3>Add a private tracker</h3><p class="mute" style="font-size:13px;margin:4px 0 10px">A number to log each day. Only you see it.</p>
+      <div class="chips" style="margin:0">${Object.entries({calories:'+ Calories',water:'+ Water',steps:'+ Steps',protein:'+ Protein',custom:'+ Custom'}).filter(([k])=>k==='custom'||!ME.trackers.some(t=>t.label===TRACKER_TEMPLATES[k].label)).map(([k,l])=>`<button class="chip" data-a="add-tracker" data-v="${k}">${l}</button>`).join('')}</div></div>` : ''}
     <div class="card"><div class="hd"><h3>My list</h3><span class="badge">🔒 Locked</span></div>
       <ul class="sumlist">${u.items.map(i=>`<li><span>${esc(i.label)}</span>${pips(i.weight)}</li>`).join('')}</ul></div>
-    <div class="card"><h3 style="margin-bottom:4px">My crews</h3>${ME.crews.length ? ME.crews.map(c=>`<div class="memrow">${crest(c.name)}<span>${esc(c.name)}<br><small class="mute" style="font-weight:400">${c.members} members${c.captain?' · captain':''}</small></span><button class="tlink" data-a="goto-crew" data-v="${c.id}">Open</button></div>`).join('') : '<p class="mute" style="font-size:14px">No crews yet.</p>'}
+    <div class="card"><h3 style="margin-bottom:4px">My crews</h3>${ME.crews.length ? ME.crews.map(c=>`<div class="memrow">${crest(c.name)}<span>${esc(c.name)}<br><small class="mute" style="font-weight:400">${c.members} members${c.captain?' · captain':''} · counts: ${esc(chName(c.challengeId))}</small></span><button class="tlink" data-a="goto-crew" data-v="${c.id}">Open</button></div>`).join('') : '<p class="mute" style="font-size:14px">No crews yet.</p>'}
       <button class="linkbtn" data-a="goto-crew" data-v="__add">+ Join or start a crew</button></div>
+    <div class="card"><h3>Another 50 days</h3><p class="mute" style="font-size:13px;margin:4px 0 10px">Start a separate challenge with a new list and goals, for a different crew or just for you. Your current one keeps going.</p>
+      <button class="sbtn" data-a="new-ch">Start another 50</button></div>
     <div class="card">${isStandalone()?'':'<button class="linkbtn" data-a="a2hs">📲 Add to home screen</button>'}<button class="linkbtn" data-a="logout">Log out</button></div>
     <p class="built" style="text-align:center;margin:8px 0 0">LOCKED IN 50 · BUILT BY CARTER</p>`;
 }
@@ -779,8 +822,8 @@ const ICONS = {
   me:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>'
 };
 function vMain(){
-  const u = ME, n = dayNum(u), body = ui.tab==='crew' ? tCrew() : ui.tab==='ranks' ? tRanks() : ui.tab==='me' ? tMe(u) : tToday(u);
-  return `<div class="top"><div class="crew row" style="gap:9px">${badge(30)}<span>LOCKED IN <span>50</span></span></div><div class="row" style="gap:8px"><span class="mute" style="font-size:13px">${n<1?'Starts tomorrow':n>LEN?'Complete':'Day '+n} · 🔥${streak(u)}</span>${avatar(u)}</div></div>
+  const u = CH(), n = dayNum(u), body = ui.tab==='crew' ? tCrew() : ui.tab==='ranks' ? tRanks() : ui.tab==='me' ? tMe(u) : tToday(u);
+  return `<div class="top"><div class="crew row" style="gap:9px">${badge(30)}<span>LOCKED IN <span>50</span></span></div><div class="row" style="gap:8px"><span class="mute" style="font-size:13px">${n<1?'Starts tomorrow':n>LEN?'Complete':'Day '+n} · 🔥${streak(u)}</span>${avatar(ME)}</div></div>
     ${body}
     <nav><div class="in">${[['today','Today'],['crew','Crew'],['ranks','Ranks'],['me','Progress']].map(([k,l])=>`<button class="${ui.tab===k?'on':''}" data-a="tab" data-v="${k}">${ICONS[k]}${l}</button>`).join('')}</div></nav>`;
 }
@@ -789,7 +832,7 @@ function vMain(){
 const $app = document.getElementById('app');
 function render(){
   if (ui.loading){ $app.innerHTML = `<div class="welcome" style="align-items:center">${badge(96, true)}<p class="mute" style="margin-top:18px">Loading…</p></div>`; return; }
-  if (ME) $app.innerHTML = vMain();
+  if (ME && !(ui.draft && ui.draft.mode === 'fresh')) $app.innerHTML = vMain();
   else $app.innerHTML = ({welcome:vWelcome, account:vAccount, list:vList, goals:vGoals, trackers:vTrackers, crew:vCrewStep, lock:vLock, login:vLogin}[ui.view] || vWelcome)();
 }
 const val = id => (document.getElementById(id)?.value || '').trim();
@@ -814,8 +857,10 @@ async function offerPendingJoin(){
   const pj = ui.pendingJoin; ui.pendingJoin = null; if (!pj || !ME) return;
   const existing = ME.crews.find(c => c.code === pj.code);
   if (existing){ ui.crewId = existing.id; ls.set(CREWKEY, existing.id); ui.tab = 'crew'; await refresh(); render(); return; }
-  modal(`Join ${esc(pj.name || 'this crew')}?`, `You've been invited to join <b>${esc(pj.name || pj.code)}</b>. Your list and score will count in this crew too.`, 'Join crew', async () => {
-    try { const r = await rpc('join_crew', { p_token: tok(), p_code: pj.code }); ui.crewId = r.id; ls.set(CREWKEY, r.id); ui.tab = 'crew'; await refresh(); render(); toast(`You're in ${r.name}`); }
+  modal(`Join ${esc(pj.name || 'this crew')}?`, `<p style="font-size:14px">You've been invited to join <b>${esc(pj.name || pj.code)}</b>.</p>${chPicker()}`, 'Join crew', async (m) => {
+    const pv = pickVal(m); if (!pv) return false;
+    if (pv === 'fresh') { setTimeout(() => startFresh({ type:'join', code: pj.code, name: pj.name || pj.code }), 0); return; }
+    try { const r = await rpc('join_crew', { p_token: tok(), p_code: pj.code, p_challenge: pv }); ui.crewId = r.id; ls.set(CREWKEY, r.id); ui.tab = 'crew'; await refresh(); render(); toast(`You're in ${r.name}`); }
     catch(e){ toast(errMsg(e)); }
   });
 }
@@ -825,7 +870,7 @@ async function act(a, v, el){
   const d = ui.draft;
   const busy = (t) => { if (el){ el.disabled = true; if (t) el.textContent = t; } };
   switch(a){
-    case 'go': ui.view = v; ui.err = ''; if (v==='welcome') ui.joinPhoto = null; break;
+    case 'go': if (v === 'cancel-fresh') { ui.draft = null; ui.err = ''; break; } ui.view = v; ui.err = ''; if (v==='welcome') ui.joinPhoto = null; break;
     /* --- onboarding --- */
     case 'account': {
       const name = val('j-name'), pin = val('j-pin');
@@ -856,7 +901,24 @@ async function act(a, v, el){
     case 'goal-t': if (d.goals.length < MAX_GOALS) d.goals.push({...GOAL_TEMPLATES[v], start:'', target:''}); break;
     case 'gkind': d.goals[+el.dataset.i].kind = v; break;
     case 'rm-goal': d.goals.splice(+v,1); ui.err=''; break;
+    case 'cancel-fresh': ui.draft = null; ui.err = ''; break;
+    case 'new-ch': startFresh(null); return;
+    case 'switch-ch': ui.chId = v; ls.set(CHKEY, v); break;
+    case 'change-ch': {
+      const my = ME.crews.find(c=>c.id===CREW.id); const crew = CREW;
+      modal(`What counts in ${esc(crew.name)}?`, `<p style="font-size:14px">Pick which 50 days show on this crew's leaderboard, or start a fresh one just for this crew.</p>${chPicker(my.challengeId)}`, 'Save', async (m) => {
+        const pv = pickVal(m); if (!pv) return false;
+        if (pv === 'fresh') { setTimeout(() => startFresh({ type:'for', crewId: crew.id, name: crew.name }), 0); return; }
+        if (pv === my.challengeId) return;
+        try { await rpc('set_crew_challenge', { p_token:tok(), p_crew:crew.id, p_challenge:pv }); await refresh(); render(); toast('Updated'); } catch(e){ toast(errMsg(e)); return false; }
+      }); return;
+    }
     case 'to-trackers': {
+      if (d.mode === 'fresh') {
+        for (const g of d.goals){ const s1 = parseGoal(g, g.start), t1 = parseGoal(g, g.target);
+          if (!String(g.label).trim() || isNaN(s1) || isNaN(t1) || s1 === t1) { ui.err = 'Each goal needs a name, plus a start and target that are different.'; render(); return; } }
+        ui.err = ''; ui.view = 'lock'; break;
+      }
       for (const g of d.goals){
         const s = parseGoal(g, g.start), t = parseGoal(g, g.target);
         if (!String(g.label).trim() || isNaN(s) || isNaN(t) || s === t) { ui.err = g.kind==='time' ? 'Each goal needs a name, plus start and target times (like 28:00 and 24:59) that are different.' : 'Each goal needs a name, plus a start and target number that are different.'; render(); return; }
@@ -883,6 +945,21 @@ async function act(a, v, el){
     }
     case 'start': d.startIn = +v; break;
     case 'lock':
+      if (d.mode === 'fresh') {
+        modal('Lock it in?', "This new list and its goals can't change for 50 days. Your other 50 days keep going as they are.", "I'm in", async () => {
+          const ca = d.crewAction;
+          try {
+            const r = await rpc('create_challenge', { p_token:tok(), p_name: (d.chName || '').trim() || (ca ? ca.name : 'My 50'), p_start: addDays(today(), d.startIn),
+              p_items: d.items.map((it,i)=>({id:'i'+i, label:it.label, weight:it.weight})),
+              p_goals: d.goals.map(g=>({label:String(g.label).trim(), unit: g.kind==='time' ? '' : String(g.unit).trim(), kind:g.kind, start:parseGoal(g,g.start), target:parseGoal(g,g.target), shared:!!g.shared})),
+              p_join_code: ca && ca.type==='join' ? ca.code : null, p_new_crew: ca && ca.type==='start' ? ca.name : null, p_for_crew: ca && ca.type==='for' ? ca.crewId : null });
+            ui.draft = null; ui.chId = r.challenge_id; ls.set(CHKEY, r.challenge_id);
+            if (r.crew_id) { ui.crewId = r.crew_id; ls.set(CREWKEY, r.crew_id); }
+            await refresh(); ui.tab = 'today'; render(); scrollTo(0,0);
+            toast(ca && ca.type==='start' && r.crew_code ? `Locked in. Invite your crew with ${r.crew_code}` : "Fresh 50 days locked in. Let's go.");
+          } catch(e){ toast(errMsg(e)); }
+        }); return;
+      }
       modal('Lock it in?', "No edits to your list or goals for 50 days. Miss a day and it counts as 0%. You in?", "I'm in", async () => {
         toast('Locking in…');
         try {
@@ -917,18 +994,18 @@ async function act(a, v, el){
       if (v === 'crew') { try { await Promise.all([loadMe(), loadCrew()]); } catch(e){} if (ui.tab === 'crew' && !document.activeElement.closest('input,textarea')) render(); }
       return;
     case 'tick': {
-      const t = today(), arr = ME.days[t] || (ME.days[t] = []), i = arr.indexOf(v);
+      const ch = CH(), t = today(), arr = ch.days[t] || (ch.days[t] = []), i = arr.indexOf(v);
       i >= 0 ? arr.splice(i,1) : arr.push(v);
-      if (CREW && CREW.users[ME.id]) CREW.users[ME.id].days[t] = [...arr];
-      const done = [...arr], perfect = score(ME,t) === 100, n = dayNum(ME);
+      if (CREW && CREW.users[ME.id] && CREW.users[ME.id].challengeId === ch.id) CREW.users[ME.id].days[t] = [...arr];
+      const done = [...arr], perfect = score(ch,t) === 100, n = dayNum(ch);
       render();
-      if (perfect) toast(`💯 Perfect day. 🔥 ${streak(ME)} day streak`);
-      queue(() => rpc('set_day', { p_token:tok(), p_day:t, p_done:done, p_perfect:perfect, p_day_num:n })
+      if (perfect) toast(`💯 Perfect day. 🔥 ${streak(ch)} day streak`);
+      queue(() => rpc('set_day', { p_token:tok(), p_challenge:ch.id, p_day:t, p_done:done, p_perfect:perfect, p_day_num:n })
         .catch(async e => { toast(errMsg(e)); await refresh(); render(); }));
       return;
     }
     case 'log-modal': {
-      const g = ME.goals.find(x=>x.id===v); if (!g) return;
+      const g = allGoals().find(x=>x.id===v); if (!g) return;
       const tl = g.logs.find(l=>l.date===today());
       modal(`Log ${esc(g.label)}`, `<label class="mute" style="font-size:13px" for="m-val">${g.kind==='time'?'Your time today (mm:ss)':'Today\'s number'+(g.unit?' ('+esc(g.unit)+')':'')}</label>
         <input class="input" id="m-val" inputmode="${g.kind==='time'?'text':'decimal'}" value="${tl?(g.kind==='time'?fmtTime(tl.value):tl.value):''}" placeholder="${g.kind==='time'?'24:38':''}">
@@ -938,7 +1015,7 @@ async function act(a, v, el){
       }); return;
     }
     case 'log': {
-      const g = ME.goals.find(x=>x.id===v); const x = parseGoal(g, val('gl-'+v));
+      const g = allGoals().find(x=>x.id===v); const x = parseGoal(g, val('gl-'+v));
       if (isNaN(x)) { toast(g.kind==='time'?'Enter a time like 24:38':'Enter a number'); return; }
       busy(); await logGoal(g, x); break;
     }
@@ -979,14 +1056,23 @@ async function act(a, v, el){
     case 'goto-crew': ui.tab = 'crew'; scrollTo(0,0); return act('switch-crew', v);
     case 'crewform': ui.crewForm = v; ui.err = ''; break;
     case 'join-crew': {
-      const code = val('cf-code'); if (!code) return; busy('Joining…');
-      try { const r = await rpc('join_crew', { p_token:tok(), p_code:code }); ui.crewId = r.id; ls.set(CREWKEY, r.id); ui.err = ''; await refresh(); toast(`You're in ${r.name}`); }
-      catch(e){ ui.err = errMsg(e); }
+      const code = val('cf-code'), pv = pickVal(); if (!code) { ui.err = 'Enter the crew code.'; break; }
+      busy('Joining…');
+      try {
+        if (pv === 'fresh') {
+          const c = await rpc('crew_preview', { p_code: code });
+          if (ME.crews.some(x => x.id && x.code === c.code)) { ui.err = ERR.already_in_crew; break; }
+          startFresh({ type:'join', code: c.code, name: c.name }); return;
+        }
+        const r = await rpc('join_crew', { p_token:tok(), p_code:code, p_challenge:pv }); ui.crewId = r.id; ls.set(CREWKEY, r.id); ui.err = ''; await refresh(); toast(`You're in ${r.name}`);
+      } catch(e){ ui.err = errMsg(e); }
       break;
     }
     case 'create-crew': {
-      const name = val('cf-name'); if (name.length < 2) { ui.err = ERR.bad_crew_name; break; } busy('Starting…');
-      try { const r = await rpc('create_crew', { p_token:tok(), p_name:name }); ui.crewId = r.id; ls.set(CREWKEY, r.id); ui.err = ''; await refresh(); toast(`${r.name} is live. Invite your mates!`); }
+      const name = val('cf-name'), pv = pickVal(); if (name.length < 2) { ui.err = ERR.bad_crew_name; break; }
+      if (pv === 'fresh') { startFresh({ type:'start', name }); return; }
+      busy('Starting…');
+      try { const r = await rpc('create_crew', { p_token:tok(), p_name:name, p_challenge:pv }); ui.crewId = r.id; ls.set(CREWKEY, r.id); ui.err = ''; await refresh(); toast(`${r.name} is live. Invite your mates!`); }
       catch(e){ ui.err = errMsg(e); }
       break;
     }
