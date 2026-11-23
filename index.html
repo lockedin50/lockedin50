@@ -380,7 +380,7 @@ const ERR = {
   offline:"Can't connect. Check your internet and try again.",
   photo_too_big:'That photo is too big.', day_closed:"That day's closed now.", bad_token:'Please log in again.',
   not_in_crew:"You're not in that crew any more.", too_many_crews:'That\'s the most crews you can be in (10).', crew_full:'That crew is full (50 people).',
-  bad_crew_name:'Crew names are 2–30 characters.', already_in_crew:"You're already in that crew.", too_many_challenges:'You can run up to 5 challenges at once.', not_captain:'Only the crew captain can do that.', too_many_trackers:'You can have up to 4 trackers.'
+  bad_crew_name:'Crew names are 2–30 characters.', already_kicked_off:'The crew has already kicked off.', bad_start:'Pick a date within the next 2 weeks.', already_in_crew:"You're already in that crew.", too_many_challenges:'You can run up to 5 challenges at once.', not_captain:'Only the crew captain can do that.', too_many_trackers:'You can have up to 4 trackers.'
 };
 const errMsg = e => ERR[e.message] || 'Something went wrong. Try again.';
 const ls = { get(k){ try { return localStorage.getItem(k); } catch(e){ return null; } }, set(k,v){ try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k,v); } catch(e){} } };
@@ -617,16 +617,36 @@ function vCrewStep(){
     ${err()}
     ${footer('trackers','to-lock','Next')}`;
 }
+function nextMonday(){ const t = parse(today()), dow = t.getDay(); t.setDate(t.getDate() + ((8 - dow) % 7 || 7)); return ymd(t); }
+const fmtDay = s => parse(s).toLocaleDateString('en-AU',{weekday:'short', day:'numeric', month:'short'});
+// The kick-off date of the crew this draft is joining, if it hasn't started yet.
+function joinKickoff(d){
+  const ca = d.crewAction;
+  const k = d.mode==='fresh' ? (ca && (ca.type==='join' || ca.type==='for') ? ca.kickoff : null) : (d.crewMode==='join' ? d.joinKickoff : null);
+  return k && k > today() ? k : null;
+}
+const startsCrew = d => d.mode==='fresh' ? !!(d.crewAction && d.crewAction.type==='start') : d.crewMode==='start';
+function startPicker(d){
+  const k = joinKickoff(d);
+  if (k) { d.startDate = k; return `<div class="card" style="margin-bottom:14px"><div class="eyebrow">Kick-off</div><p style="font-size:15px;margin-top:4px">You start with the crew on <b>${fmtDay(k)}</b>.</p></div>`; }
+  const t = today(), tm = addDays(t,1), nm = nextMonday();
+  if (!d.startDate || d.startDate < t) d.startDate = t;
+  const opts = [[t,'Today'],[tm,'Tomorrow']]; if (startsCrew(d) && nm !== tm) opts.push([nm, 'Next Monday']);
+  return `${startsCrew(d) ? '<div class="eyebrow" style="margin-bottom:6px">Crew kick-off: everyone who joins before then starts together</div>' : ''}
+    <div class="row" style="margin-bottom:${startsCrew(d)?'8':'14'}px;flex-wrap:wrap">${opts.map(([v,l])=>`<button class="opt ${d.startDate===v?'on':''}" data-a="start" data-v="${v}">${l}</button>`).join('')}</div>
+    ${startsCrew(d) ? `<div class="field"><label for="start-pick">Or pick a date (up to 2 weeks away)</label><input class="input" type="date" id="start-pick" min="${t}" max="${addDays(t,14)}" value="${d.startDate}"></div>` : ''}`;
+}
 function vLock(){
-  const d = ui.draft, end = addDays(addDays(today(),d.startIn), LEN-1);
+  const d = ui.draft, end = addDays(d.startDate, LEN-1);
   const ca = d.crewAction;
   const crewLine = d.mode==='fresh'
-    ? (ca ? (ca.type==='join' ? `Joining <b>${esc(ca.name)}</b> with this one` : ca.type==='start' ? `Starting <b>${esc(ca.name)}</b> with this one` : `This replaces what counts in <b>${esc(ca.name)}</b>. Your other 50 days carry on.`) : 'Not in a crew yet. Add it to one any time.')
+    ? (ca ? (ca.type==='join' ? `Joining <b>${esc(ca.name)}</b> with this one` : ca.type==='start' ? `Starting <b>${esc(ca.name)}</b> with this one`
+    : `This becomes what counts in <b>${esc(ca.name)}</b>. Your other 50 days carry on.`) : 'Just for you. Not in a crew.')
     : d.crewMode==='join' ? `Joining <b>${esc(d.joinName || d.joinCode)}</b>` : d.crewMode==='start' ? `Starting <b>${esc(d.crewName)}</b>` : 'No crew yet';
   return `${stepBar('lock')}<div class="eyebrow">Step ${stepN('lock')} · Lock it in</div><h2 style="margin-top:6px">Last look, ${esc(d.mode==='fresh' ? ME.username : d.username)}.</h2>
     ${d.mode==='fresh' ? `<div class="field" style="margin-top:12px"><label>Name this 50 days</label><input class="input" data-d="chName" value="${esc(d.chName||'')}" placeholder="e.g. Run Club 50" maxlength="30"></div>` : ''}
     <p class="sub">Once you lock in, your list and goals can't change for 50 days.</p>
-    <div class="row" style="margin-bottom:14px"><button class="opt ${d.startIn===0?'on':''}" data-a="start" data-v="0">Start today</button><button class="opt ${d.startIn===1?'on':''}" data-a="start" data-v="1">Start tomorrow</button></div>
+    ${startPicker(d)}
     <div class="card"><div class="eyebrow" style="margin-bottom:6px">Daily list</div>
       <ul class="sumlist">${d.items.map(i=>`<li><span>${esc(i.label)}</span>${pips(i.weight)}</li>`).join('')}</ul></div>
     ${d.goals.length?`<div class="card"><div class="eyebrow" style="margin-bottom:6px">Goals</div>
@@ -680,7 +700,7 @@ function chSwitch(){
 }
 function tToday(u){
   const t = today(), n = dayNum(u);
-  if (n < 1) return `${a2hsBanner()}${chSwitch()}<div class="card center" style="padding:28px 18px"><div class="eyebrow">Locked in 🔒</div><h2 style="margin:8px 0">Day 1 starts tomorrow</h2>
+  if (n < 1) return `${a2hsBanner()}${chSwitch()}<div class="card center" style="padding:28px 18px"><div class="eyebrow">Locked in 🔒</div><h2 style="margin:8px 0">Day 1 starts ${n===0?'tomorrow':fmtDay(u.startDate)}</h2>
     <p class="mute" style="margin-bottom:14px">Rest up. Here's what you signed up for.</p>
     <ul class="sumlist" style="text-align:left">${u.items.map(i=>`<li><span>${esc(i.label)}</span>${pips(i.weight)}</li>`).join('')}</ul></div>${trackCard()}`;
   if (n > LEN) return chSwitch() + tFinished(u) + trackCard();
@@ -702,25 +722,41 @@ function tFinished(u){
     <button class="btn primary" style="margin-top:16px" data-a="new-ch">Start another 50</button>
   </div>`;
 }
-function chPicker(sel){
-  const live = ME.challenges.filter(c => dayNum(c) <= LEN);
-  if (!sel) sel = live.some(c=>c.id===ui.chId) ? ui.chId : (live[0] ? live[0].id : 'fresh');
-  return `<div class="eyebrow" style="margin:14px 0 6px">Which 50 days count in this crew?</div>
-    ${live.map(c=>`<label class="chopt"><input type="radio" name="chpick" value="${c.id}" ${c.id===sel?'checked':''}><span><b>Carry over: ${esc(c.name)}</b><small>${dayNum(c)<1?'Starts soon':'Day '+dayNum(c)} · ${c.items.length} items · keep your streak</small></span></label>`).join('')}
-    <label class="chopt"><input type="radio" name="chpick" value="fresh" ${sel==='fresh'?'checked':''}><span><b>Start fresh</b><small>New list and goals, new 50 days, just for this crew</small></span></label>`;
+function copyPicker(sel){
+  const list = ME.challenges;
+  if (!sel) sel = list.some(c=>c.id===ui.chId) ? ui.chId : (list[0] ? list[0].id : 'scratch');
+  return `<div class="eyebrow" style="margin:14px 0 6px">Your new 50 days for this crew</div>
+    <p class="mute" style="font-size:13px;margin-bottom:8px">Every crew starts from Day 1. You can copy a list and goals you already have, then tweak them.</p>
+    ${list.map(c=>`<label class="chopt"><input type="radio" name="chpick" value="${c.id}" ${c.id===sel?'checked':''}><span><b>Copy from ${esc(c.name)}</b><small>${c.items.length} items${c.goals.length?` · ${c.goals.length} goal${c.goals.length>1?'s':''}`:''} · starts again at Day 1</small></span></label>`).join('')}
+    <label class="chopt"><input type="radio" name="chpick" value="scratch" ${sel==='scratch'?'checked':''}><span><b>Start from scratch</b><small>Build a new list and goals</small></span></label>`;
 }
 const pickVal = (root=document) => (root.querySelector('input[name=chpick]:checked') || {}).value;
-function startFresh(crewAction){
-  ui.draft = { mode:'fresh', items:[], goals:[], trackers:[], startIn:0, chName: crewAction ? crewAction.name : '', crewAction: crewAction || null };
+// Open the setup flow for a new 50 days. crewAction: {type:'join'|'start'|'for', ...}; from: a challenge id to copy list and goals from.
+function startFresh(crewAction, from){
+  const src = from && ME.challenges.find(c => c.id === from);
+  const f = (g, v) => g.kind === 'time' ? fmtTime(v) : String(+v);
+  ui.draft = { mode:'fresh', trackers:[], chName: crewAction ? crewAction.name : '', crewAction: crewAction || null,
+    items: src ? src.items.map(i => ({ label:i.label, weight:i.weight })) : [],
+    goals: src ? src.goals.map(g => ({ label:g.label, unit:g.unit, kind:g.kind, start: f(g, cur(g)), target: f(g, g.target), shared:g.shared })) : [],
+    startDate: today() };
   ui.view = 'list'; ui.err = ''; render(); scrollTo(0,0);
+  if (src) toast(`Copied from ${src.name}. Tweak anything, then lock in.`);
 }
 function crewForms(){
   const f = ui.crewForm || 'join';
   return `<div class="card"><div class="seg" style="display:inline-flex;margin-bottom:12px"><button class="${f==='join'?'on':''}" data-a="crewform" data-v="join">Join a crew</button><button class="${f==='start'?'on':''}" data-a="crewform" data-v="start">Start a crew</button></div>
     ${f==='join'
-      ? `<p class="mute" style="font-size:14px;margin-bottom:8px">Enter the code a mate sent you.</p><input class="input" id="cf-code" placeholder="LI50-XXXXX" autocapitalize="characters" aria-label="Crew code">${chPicker()}<button class="btn primary" style="margin-top:8px" data-a="join-crew">Join crew</button>`
-      : `<p class="mute" style="font-size:14px;margin-bottom:8px">Name your crew. You'll get a code and invite link to send your mates.</p><input class="input" id="cf-name" placeholder="e.g. Gym Rats" maxlength="30" aria-label="Crew name">${chPicker()}<button class="btn primary" style="margin-top:8px" data-a="create-crew">Start crew</button>`}
+      ? `<p class="mute" style="font-size:14px;margin-bottom:8px">Enter the code a mate sent you.</p><input class="input" id="cf-code" placeholder="LI50-XXXXX" autocapitalize="characters" aria-label="Crew code">${copyPicker()}<button class="btn primary" style="margin-top:8px" data-a="join-crew">Next</button>`
+      : `<p class="mute" style="font-size:14px;margin-bottom:8px">Name your crew. You'll get a code and invite link to send your mates.</p><input class="input" id="cf-name" placeholder="e.g. Gym Rats" maxlength="30" aria-label="Crew name">${copyPicker()}<button class="btn primary" style="margin-top:8px" data-a="create-crew">Next</button>`}
     ${err()}</div>`;
+}
+function crewMeta(){
+  const k = CREW.kickoff, t = today(), isCap = CREW.captainId === ME.id;
+  const parts = [];
+  if (CREW.champion) parts.push(`<span class="pill" style="border-color:rgba(255,216,77,.5);color:#FFD84D">👑 Crew of the Week</span>`);
+  if (k && k > t) parts.push(`<span class="pill">🚀 Kicks off ${fmtDay(k)}${isCap ? ' · <button class="tlink" data-a="kickoff">change</button>' : ''}</span>`);
+  else if (k) parts.push(`<span class="pill">Crew day ${diff(k, t) + 1}</span>`);
+  return parts.length ? `<div class="pills" style="margin-top:-4px">${parts.join('')}</div>` : '';
 }
 function tCrew(){
   if (!ME.crews.length) return `<div class="card center" style="padding:24px 18px"><div style="display:flex;justify-content:center;margin-bottom:10px">${badge(64)}</div><h2 style="font-size:22px">You're not in a crew yet</h2>
@@ -736,7 +772,10 @@ function tCrew(){
   const isCaptain = CREW.captainId === me.id;
   return `${chips}
     <div class="crewhead"><div><h2>${esc(CREW.name)}</h2><div class="mute" style="font-size:13px">${all.length} ${all.length===1?'member':'members'}${isCaptain?' · You\'re captain':''}</div></div>${crest(CREW.name)}</div>
-    ${(() => { const my = ME.crews.find(c=>c.id===CREW.id); return my ? `<div class="card" style="display:flex;align-items:center;gap:10px;padding:12px 14px"><div style="flex:1;min-width:0"><div class="eyebrow">Counting here</div><b style="font-size:15px">${esc(chName(my.challengeId))}</b></div><button class="sm" style="padding:9px 12px;border-radius:10px;background:var(--card2);border:1px solid var(--line);font-weight:700;font-size:13px" data-a="change-ch">Change</button></div>` : ''; })()}
+    ${crewMeta()}
+    ${(() => { const my = ME.crews.find(c=>c.id===CREW.id); if (!my) return ''; const others = ME.crews.filter(c=>c.id!==CREW.id && c.challengeId===my.challengeId);
+      return others.length ? `<div class="card" style="padding:12px 14px"><p style="font-size:14px">Your <b>${esc(chName(my.challengeId))}</b> also counts in ${others.map(o=>esc(o.name)).join(', ')}. Give ${esc(CREW.name)} its own fresh 50 days?</p>
+        <button class="sbtn" style="margin-top:10px" data-a="change-ch">Start fresh for this crew</button></div>` : ''; })()}
     <div class="card lb"><div class="hd"><h3>Leaderboard</h3>
       <div class="seg">${[['week','7 days'],['overall','Overall'],['streak','Streak']].map(([k,l])=>`<button class="${key===k?'on':''}" data-a="lb" data-v="${k}">${l}</button>`).join('')}</div></div>
     ${rows.length ? rows.map((r,i)=>`<div class="lrow ${i===0?'first':''}"><span class="rank">${i+1}</span>${avatar(r.u)}<div class="who"><b class="${r.u.id===me.id?'me':''}">${esc(r.u.name)}${r.u.id===me.id?' (you)':''}</b><small>${dayNum(r.u)>LEN?'Finished':'Day '+dayNum(r.u)} · 🔥 ${r.st}</small></div><span class="sc">${key==='streak' ? r.s + '<span style="font-size:13px"> 🔥</span>' : r.s + '%'}</span></div>`).join('') : '<p class="mute">Nobody has started yet.</p>'}
@@ -761,18 +800,21 @@ function tCrew(){
 }
 function tRanks(){
   if (!BOARD) return `<p class="mute" style="text-align:center;padding:40px 0">Loading the board…</p>`;
-  const key = ui.board === 'overall' ? 'overall' : 'week';
-  const ranked = BOARD.filter(b=>b.ranked).sort((a,b)=>(+b[key]||0)-(+a[key]||0) || b.active-a.active);
-  const mineUnranked = BOARD.filter(b=>!b.ranked && b.mine);
-  return `<div class="eyebrow">Crew vs crew</div><h2 style="margin:4px 0 14px">The Ranks</h2>
-    <div class="card"><div class="hd"><h3>All crews</h3>
-      <div class="seg"><button class="${key==='week'?'on':''}" data-a="board" data-v="week">Last 7 days</button><button class="${key==='overall'?'on':''}" data-a="board" data-v="overall">Overall</button></div></div>
-      ${ranked.length ? ranked.map((b,i)=>`<div class="rk ${i<3?'top':''} ${b.mine?'mine':''}"><span class="rank">${i+1}</span>${crest(b.name)}<div class="cn"><b>${esc(b.name)}${b.mine?' (yours)':''}</b><small>${b.active} active</small></div><span class="sc">${b[key]!=null?Math.round(b[key]):0}%</span></div>`).join('')
-        : '<p class="mute" style="padding:8px 0">No crews ranked yet. A crew needs 3 people in their 50 days to make the board.</p>'}
+  const B = BOARD, t = today(), left = diff(t, B.weekEnd);
+  const ranked = B.crews.filter(b=>b.ranked).sort((a,b)=>(+b.score||0)-(+a.score||0) || b.active-a.active);
+  const mineUnranked = B.crews.filter(b=>!b.ranked && b.mine);
+  const last = B.champions[0] && B.champions[0].weekStart === addDays(B.weekStart, -7) ? B.champions[0] : null;
+  return `<div class="eyebrow">Crew vs crew · Weekly season</div><h2 style="margin:4px 0 4px">The Ranks</h2>
+    <p class="mute" style="font-size:14px;margin-bottom:14px">${fmt(B.weekStart)} – ${fmt(B.weekEnd)} · ${left === 0 ? 'Final day. Finish strong.' : left + (left === 1 ? ' day' : ' days') + ' left'}. Resets every Monday.</p>
+    ${last ? `<div class="card" style="border-color:rgba(255,216,77,.45);display:flex;align-items:center;gap:12px"><span style="font-size:30px" aria-hidden="true">👑</span><div style="flex:1;min-width:0"><div class="eyebrow">Last week's Crew of the Week</div><b style="font-size:16px">${esc(last.name)}${last.mine?' (yours)':''}</b></div><span style="font-family:'Archivo Black','Arial Black',sans-serif;font-size:20px">${Math.round(last.score)}%</span></div>` : ''}
+    <div class="card"><div class="hd"><h3>This week</h3></div>
+      ${ranked.length ? ranked.map((b,i)=>`<div class="rk ${i<3?'top':''} ${b.mine?'mine':''}"><span class="rank">${i+1}</span>${crest(b.name)}<div class="cn"><b>${b.champion?'👑 ':''}${esc(b.name)}${b.mine?' (yours)':''}</b><small>${b.active} active</small></div><span class="sc">${b.score!=null?Math.round(b.score):0}%</span></div>`).join('')
+        : '<p class="mute" style="padding:8px 0">No crews ranked yet this week. A crew needs 3 people in their 50 days to make the board.</p>'}
     </div>
-    ${mineUnranked.length ? `<div class="card"><h3>Not ranked yet</h3>${mineUnranked.map(b=>`<div class="rk mine">${crest(b.name)}<div class="cn"><b>${esc(b.name)}</b><small>${b.active} of 3 active members needed</small></div></div>`).join('')}
-      <p class="mute" style="font-size:13px;margin-top:6px">Invite more mates from the Crew tab to get on the board.</p></div>` : ''}
-    <p class="mute" style="font-size:12px;text-align:center;margin-top:4px">Crew score = average of its members' daily scores. Only crew names and scores are shown here, never members.</p>`;
+    ${mineUnranked.length ? `<div class="card"><h3>Not ranked yet</h3>${mineUnranked.map(b=>`<div class="rk mine">${crest(b.name)}<div class="cn"><b>${esc(b.name)}</b><small>${b.active} of 3 active members needed this week</small></div></div>`).join('')}
+      <p class="mute" style="font-size:13px;margin-top:6px">Invite more mates from the Crew tab to get on the board. Members count once their 50 days have started.</p></div>` : ''}
+    ${B.champions.length ? `<div class="card"><h3 style="margin-bottom:4px">Past champions</h3>${B.champions.map(c=>`<div class="rk ${c.mine?'mine':''}"><span aria-hidden="true">👑</span><div class="cn"><b>${esc(c.name)}</b><small>Week of ${fmt(c.weekStart)}</small></div><span class="sc" style="font-size:16px">${Math.round(c.score)}%</span></div>`).join('')}</div>` : ''}
+    <p class="mute" style="font-size:12px;text-align:center;margin-top:4px">Season score = average of each member's daily score this week, so crews of any size and start date can win. Only crew names and scores are shown here.</p>`;
 }
 function tMe(u){
   const t = today(), n = dayNum(u);
@@ -823,7 +865,7 @@ const ICONS = {
 };
 function vMain(){
   const u = CH(), n = dayNum(u), body = ui.tab==='crew' ? tCrew() : ui.tab==='ranks' ? tRanks() : ui.tab==='me' ? tMe(u) : tToday(u);
-  return `<div class="top"><div class="crew row" style="gap:9px">${badge(30)}<span>LOCKED IN <span>50</span></span></div><div class="row" style="gap:8px"><span class="mute" style="font-size:13px">${n<1?'Starts tomorrow':n>LEN?'Complete':'Day '+n} · 🔥${streak(u)}</span>${avatar(ME)}</div></div>
+  return `<div class="top"><div class="crew row" style="gap:9px">${badge(30)}<span>LOCKED IN <span>50</span></span></div><div class="row" style="gap:8px"><span class="mute" style="font-size:13px">${n<1?(n===0?'Starts tomorrow':'Starts '+fmtDay(u.startDate)):n>LEN?'Complete':'Day '+n} · 🔥${streak(u)}</span>${avatar(ME)}</div></div>
     ${body}
     <nav><div class="in">${[['today','Today'],['crew','Crew'],['ranks','Ranks'],['me','Progress']].map(([k,l])=>`<button class="${ui.tab===k?'on':''}" data-a="tab" data-v="${k}">${ICONS[k]}${l}</button>`).join('')}</div></nav>`;
 }
@@ -857,11 +899,9 @@ async function offerPendingJoin(){
   const pj = ui.pendingJoin; ui.pendingJoin = null; if (!pj || !ME) return;
   const existing = ME.crews.find(c => c.code === pj.code);
   if (existing){ ui.crewId = existing.id; ls.set(CREWKEY, existing.id); ui.tab = 'crew'; await refresh(); render(); return; }
-  modal(`Join ${esc(pj.name || 'this crew')}?`, `<p style="font-size:14px">You've been invited to join <b>${esc(pj.name || pj.code)}</b>.</p>${chPicker()}`, 'Join crew', async (m) => {
+  modal(`Join ${esc(pj.name || 'this crew')}?`, `<p style="font-size:14px">You've been invited to join <b>${esc(pj.name || pj.code)}</b>${pj.kickoff && pj.kickoff > today() ? `, kicking off <b>${fmtDay(pj.kickoff)}</b>` : ''}.</p>${copyPicker()}`, 'Next', async (m) => {
     const pv = pickVal(m); if (!pv) return false;
-    if (pv === 'fresh') { setTimeout(() => startFresh({ type:'join', code: pj.code, name: pj.name || pj.code }), 0); return; }
-    try { const r = await rpc('join_crew', { p_token: tok(), p_code: pj.code, p_challenge: pv }); ui.crewId = r.id; ls.set(CREWKEY, r.id); ui.tab = 'crew'; await refresh(); render(); toast(`You're in ${r.name}`); }
-    catch(e){ toast(errMsg(e)); }
+    setTimeout(() => startFresh({ type:'join', code: pj.code, name: pj.name || pj.code, kickoff: pj.kickoff }, pv === 'scratch' ? null : pv), 0);
   });
 }
 
@@ -882,8 +922,8 @@ async function act(a, v, el){
         const r = await rpc('check_username', { p_username: name });
         if (!r.available) { ui.err = ERR.username_taken; break; }
         const pj = ui.pendingJoin;
-        ui.err = ''; ui.draft = { username:name, pin, photo: ui.joinPhoto || null, items:[], goals:[], trackers:[], startIn:0,
-          crewMode: pj ? 'join' : 'start', joinCode: pj ? pj.code : '', joinName: pj ? pj.name : '', crewName:'' };
+        ui.err = ''; ui.draft = { username:name, pin, photo: ui.joinPhoto || null, items:[], goals:[], trackers:[], startDate: today(),
+          crewMode: pj ? 'join' : 'start', joinCode: pj ? pj.code : '', joinName: pj ? pj.name : '', joinKickoff: pj ? pj.kickoff : null, crewName:'' };
         ui.view = 'list';
       } catch(e){ ui.err = errMsg(e); }
       break;
@@ -906,11 +946,9 @@ async function act(a, v, el){
     case 'switch-ch': ui.chId = v; ls.set(CHKEY, v); break;
     case 'change-ch': {
       const my = ME.crews.find(c=>c.id===CREW.id); const crew = CREW;
-      modal(`What counts in ${esc(crew.name)}?`, `<p style="font-size:14px">Pick which 50 days show on this crew's leaderboard, or start a fresh one just for this crew.</p>${chPicker(my.challengeId)}`, 'Save', async (m) => {
+      modal(`Fresh 50 days for ${esc(crew.name)}`, copyPicker(my.challengeId), 'Next', async (m) => {
         const pv = pickVal(m); if (!pv) return false;
-        if (pv === 'fresh') { setTimeout(() => startFresh({ type:'for', crewId: crew.id, name: crew.name }), 0); return; }
-        if (pv === my.challengeId) return;
-        try { await rpc('set_crew_challenge', { p_token:tok(), p_crew:crew.id, p_challenge:pv }); await refresh(); render(); toast('Updated'); } catch(e){ toast(errMsg(e)); return false; }
+        setTimeout(() => startFresh({ type:'for', crewId: crew.id, name: crew.name, kickoff: crew.kickoff }, pv === 'scratch' ? null : pv), 0);
       }); return;
     }
     case 'to-trackers': {
@@ -936,20 +974,20 @@ async function act(a, v, el){
       if (d.crewMode === 'join') {
         if (!d.joinCode.trim()) { ui.err = 'Enter the crew code, or pick another option.'; break; }
         busy('Checking…');
-        try { const c = await rpc('crew_preview', { p_code: d.joinCode }); d.joinName = c.name; d.joinCode = c.code; }
+        try { const c = await rpc('crew_preview', { p_code: d.joinCode }); d.joinName = c.name; d.joinCode = c.code; d.joinKickoff = c.kickoff; }
         catch(e){ ui.err = errMsg(e); break; }
       } else if (d.crewMode === 'start') {
         if (d.crewName.trim().length < 2) { ui.err = 'Give your crew a name (2–30 characters).'; break; }
       }
       ui.err = ''; ui.view = 'lock'; break;
     }
-    case 'start': d.startIn = +v; break;
+    case 'start': d.startDate = v; break;
     case 'lock':
       if (d.mode === 'fresh') {
         modal('Lock it in?', "This new list and its goals can't change for 50 days. Your other 50 days keep going as they are.", "I'm in", async () => {
           const ca = d.crewAction;
           try {
-            const r = await rpc('create_challenge', { p_token:tok(), p_name: (d.chName || '').trim() || (ca ? ca.name : 'My 50'), p_start: addDays(today(), d.startIn),
+            const r = await rpc('create_challenge', { p_token:tok(), p_name: (d.chName || '').trim() || (ca ? ca.name : 'My 50'), p_start: d.startDate,
               p_items: d.items.map((it,i)=>({id:'i'+i, label:it.label, weight:it.weight})),
               p_goals: d.goals.map(g=>({label:String(g.label).trim(), unit: g.kind==='time' ? '' : String(g.unit).trim(), kind:g.kind, start:parseGoal(g,g.start), target:parseGoal(g,g.target), shared:!!g.shared})),
               p_join_code: ca && ca.type==='join' ? ca.code : null, p_new_crew: ca && ca.type==='start' ? ca.name : null, p_for_crew: ca && ca.type==='for' ? ca.crewId : null });
@@ -964,7 +1002,7 @@ async function act(a, v, el){
         toast('Locking in…');
         try {
           const r = await rpc('create_account', { p_username:d.username, p_pin:d.pin, p_color: COLORS[Math.floor(Math.random()*COLORS.length)], p_photo:d.photo,
-            p_start:addDays(today(), d.startIn),
+            p_start: d.startDate,
             p_items: d.items.map((it,i)=>({id:'i'+i, label:it.label, weight:it.weight})),
             p_goals: d.goals.map(g=>({label:String(g.label).trim(), unit: g.kind==='time' ? '' : String(g.unit).trim(), kind:g.kind, start:parseGoal(g,g.start), target:parseGoal(g,g.target), shared:!!g.shared})),
             p_trackers: d.trackers.map(t=>({label:String(t.label).trim(), unit:String(t.unit).trim(), target: t.target === '' ? '' : +t.target})),
@@ -1057,24 +1095,17 @@ async function act(a, v, el){
     case 'crewform': ui.crewForm = v; ui.err = ''; break;
     case 'join-crew': {
       const code = val('cf-code'), pv = pickVal(); if (!code) { ui.err = 'Enter the crew code.'; break; }
-      busy('Joining…');
+      busy('Checking…');
       try {
-        if (pv === 'fresh') {
-          const c = await rpc('crew_preview', { p_code: code });
-          if (ME.crews.some(x => x.id && x.code === c.code)) { ui.err = ERR.already_in_crew; break; }
-          startFresh({ type:'join', code: c.code, name: c.name }); return;
-        }
-        const r = await rpc('join_crew', { p_token:tok(), p_code:code, p_challenge:pv }); ui.crewId = r.id; ls.set(CREWKEY, r.id); ui.err = ''; await refresh(); toast(`You're in ${r.name}`);
+        const c = await rpc('crew_preview', { p_code: code });
+        if (ME.crews.some(x => x.code === c.code)) { ui.err = ERR.already_in_crew; break; }
+        startFresh({ type:'join', code: c.code, name: c.name, kickoff: c.kickoff }, pv === 'scratch' ? null : pv); return;
       } catch(e){ ui.err = errMsg(e); }
       break;
     }
     case 'create-crew': {
       const name = val('cf-name'), pv = pickVal(); if (name.length < 2) { ui.err = ERR.bad_crew_name; break; }
-      if (pv === 'fresh') { startFresh({ type:'start', name }); return; }
-      busy('Starting…');
-      try { const r = await rpc('create_crew', { p_token:tok(), p_name:name, p_challenge:pv }); ui.crewId = r.id; ls.set(CREWKEY, r.id); ui.err = ''; await refresh(); toast(`${r.name} is live. Invite your mates!`); }
-      catch(e){ ui.err = errMsg(e); }
-      break;
+      startFresh({ type:'start', name }, pv === 'scratch' ? null : pv); return;
     }
     case 'post': {
       const t = val('post-text'); if (!t) return; busy();
@@ -1095,6 +1126,13 @@ async function act(a, v, el){
       const msg = `Join my Locked In 50 crew "${CREW.name}" 🔒 ${inviteLink(CREW.code)}  (crew code ${CREW.code})`;
       try { await navigator.clipboard.writeText(msg); toast('Invite copied. Paste it to your mates.'); } catch(e){ toast('Crew code: ' + CREW.code); }
       return;
+    }
+    case 'kickoff': {
+      const t = today();
+      modal('Change kick-off', `<p style="font-size:14px">Everyone who hasn't started yet moves to the new date.</p><input class="input" type="date" id="m-k" min="${t}" max="${addDays(t,14)}" value="${CREW.kickoff}">`, 'Save', async (m) => {
+        const v = m.querySelector('#m-k').value; if (!v) return false;
+        try { await rpc('set_kickoff', { p_token:tok(), p_crew:CREW.id, p_date:v }); await refresh(); render(); toast('Kick-off moved to ' + fmtDay(v)); } catch(e){ toast(errMsg(e)); return false; }
+      }); return;
     }
     case 'rename-crew':
       modal('Rename crew', `<input class="input" id="m-n" value="${esc(CREW.name)}" maxlength="30">`, 'Save', async (m) => {
@@ -1145,7 +1183,9 @@ document.addEventListener('input', e => {
   else if (e.target.dataset.d) d[e.target.dataset.d] = e.target.value;
 });
 document.addEventListener('change', async e => {
-  const id = e.target.id; if (id !== 'photo-in' && id !== 'j-photo') return;
+  const id = e.target.id;
+  if (id === 'start-pick' && ui.draft) { const v = e.target.value, t = today(); if (v && v >= t && v <= addDays(t,14)) ui.draft.startDate = v; render(); return; }
+  if (id !== 'photo-in' && id !== 'j-photo') return;
   const f = e.target.files && e.target.files[0]; if (!f) return;
   try {
     const url = await toAvatar(f);
@@ -1182,7 +1222,7 @@ document.addEventListener('visibilitychange', sync);
   if (jc) {
     history.replaceState(null, '', location.pathname);
     ui.pendingJoin = { code: jc.toUpperCase() };
-    try { const c = await rpc('crew_preview', { p_code: jc }); ui.pendingJoin = { code: c.code, name: c.name }; }
+    try { const c = await rpc('crew_preview', { p_code: jc }); ui.pendingJoin = { code: c.code, name: c.name, kickoff: c.kickoff }; }
     catch(e){ ui.pendingJoin = null; toast(e.message === 'bad_code' ? "That invite link has expired. Ask for a new one." : errMsg(e)); }
   }
   render();

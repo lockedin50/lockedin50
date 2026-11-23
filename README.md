@@ -9,9 +9,10 @@ A 50-day challenge app for a crew of mates:
 - Goal logging with history, charts and personal bests (PBs post to your crews).
 - Private daily trackers (calories, water, steps…), never shared or ranked.
 - Crews: anyone can start one and invite mates with a code or link (`/?join=CODE`). Up to 10 crews per person. Captains can rename, reset the code and remove members.
-- Separate 50-day challenges: when joining or starting a crew, carry over an existing 50 days or start fresh with a new list and goals just for that crew (switch what counts any time). Up to 5 running at once.
+- Every crew starts from Day 1: joining or starting a crew creates a new 50 days for it. You can copy a list and goals from one you already have (no days or streaks carry over). Up to 5 running at once.
+- Crew kick-off date: the captain picks the start day (up to 2 weeks out); everyone who joins before then starts together, late joiners start when they join.
 - Crew leaderboard (7 days / overall / streak), feed with thumbs ups and comments.
-- The Ranks: public crew-vs-crew board (crews with 3+ active members), crew name and score only.
+- The Ranks: weekly crew-vs-crew seasons (Monday to Sunday, Sydney time). Crew score = average of members' daily scores that week; 3+ active members to rank. Last week's winner is crowned Crew of the Week 👑, with past champions listed.
 
 ## Stack
 

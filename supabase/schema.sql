@@ -185,6 +185,22 @@ alter table crew_members add column if not exists challenge_id uuid references c
 alter table accounts alter column start_date drop not null;
 alter table accounts alter column items drop not null;
 
+-- ---------- version 4: crew kick-off dates and weekly seasons ----------
+alter table crews add column if not exists kickoff_date date;
+update crews c set kickoff_date = coalesce(
+    (select min(ch.start_date) from crew_members cm join challenges ch on ch.id = cm.challenge_id where cm.crew_id = c.id),
+    (c.created_at at time zone 'Australia/Sydney')::date)
+where kickoff_date is null;
+
+-- One row per finished week: the crew that topped the Ranks.
+create table if not exists season_winners (
+  week_start date primary key,
+  crew_id uuid references crews(id) on delete set null,
+  crew_name text not null,
+  score numeric not null,
+  created_at timestamptz not null default now()
+);
+
 -- Lock every table: no direct access with the public key.
 alter table crews        enable row level security;
 alter table accounts     enable row level security;
@@ -198,6 +214,8 @@ alter table tracker_logs enable row level security;
 alter table posts        enable row level security;
 alter table likes        enable row level security;
 alter table comments     enable row level security;
+alter table season_winners enable row level security;
+revoke all on season_winners from anon, authenticated;
 revoke all on crews, accounts, challenges, crew_members, goals, goal_logs, days, trackers, tracker_logs, posts, likes, comments from anon, authenticated;
 
 -- ---------- remove older functions whose shape changed ----------
@@ -215,6 +233,9 @@ drop function if exists join_crew(uuid, text);
 drop function if exists li_join(uuid, uuid);
 drop function if exists li_new_crew(uuid, text);
 drop function if exists li_score(uuid, date);
+drop function if exists join_crew(uuid, text, uuid);
+drop function if exists create_crew(uuid, text, uuid);
+drop function if exists set_crew_challenge(uuid, uuid, uuid);
 drop function if exists create_challenge(uuid, text, date, jsonb, jsonb, text, text);
 drop function if exists li_avg(uuid, integer);
 
@@ -286,6 +307,26 @@ language sql stable security definer set search_path = public as $$
   select round(avg(li_score(p_challenge, day)), 1) from recent
 $$;
 
+-- Average daily score for a challenge between two dates (only days inside its 50; today once ticked).
+create or replace function li_avg_range(p_challenge uuid, p_from date, p_to date) returns numeric
+language sql stable security definer set search_path = public as $$
+  with c as (select id, start_date from challenges where id = p_challenge),
+  ds as (
+    select gs::date as day from c,
+      generate_series(greatest(c.start_date, p_from), least(c.start_date + 49, p_to, li_today()), interval '1 day') gs
+  )
+  select round(avg(li_score(p_challenge, ds.day)), 1) from ds
+  where ds.day < li_today()
+     or exists (select 1 from days d where d.challenge_id = p_challenge and d.day = ds.day and jsonb_array_length(d.done) > 0)
+$$;
+
+-- When a new challenge for a crew should start: with the crew if it hasn't kicked off yet.
+create or replace function li_start_for(p_join_code text, p_start date) returns date
+language sql stable security definer set search_path = public as $$
+  select case when c.kickoff_date > li_today() then c.kickoff_date else p_start end
+  from (select p_start as s) x left join crews c on c.code = upper(trim(coalesce(p_join_code, '')))
+$$;
+
 create or replace function li_make_code() returns text
 language plpgsql volatile as $$
 declare chars text := 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; c text; i int;
@@ -305,7 +346,7 @@ declare ch challenges; g jsonb; i int := 0;
 begin
   if jsonb_typeof(p_items) <> 'array' or jsonb_array_length(p_items) < 5 or jsonb_array_length(p_items) > 12 then raise exception 'bad_items'; end if;
   if jsonb_typeof(p_goals) <> 'array' or jsonb_array_length(p_goals) > 3 then raise exception 'bad_goals'; end if;
-  if p_start < li_today() - 1 or p_start > li_today() + 2 then raise exception 'bad_start'; end if;
+  if p_start < li_today() - 1 or p_start > li_today() + 14 then raise exception 'bad_start'; end if;
   if (select count(*) from challenges where account_id = p_account and start_date + 49 >= li_today()) >= 5 then raise exception 'too_many_challenges'; end if;
   insert into challenges (account_id, name, start_date, items)
   values (p_account, coalesce(nullif(left(trim(p_name), 30), ''), 'My 50'), p_start, p_items)
@@ -340,7 +381,8 @@ begin
   if length(p_name) < 2 or length(p_name) > 30 then raise exception 'bad_crew_name'; end if;
   if not li_clean(p_name) then raise exception 'name_not_allowed'; end if;
   if (select count(*) from crews where captain_id = p_account) >= 10 then raise exception 'too_many_crews'; end if;
-  insert into crews (code, name, captain_id) values (li_make_code(), p_name, p_account) returning * into c;
+  insert into crews (code, name, captain_id, kickoff_date)
+  values (li_make_code(), p_name, p_account, (select start_date from challenges where id = p_challenge)) returning * into c;
   insert into crew_members (crew_id, account_id, challenge_id) values (c.id, p_account, p_challenge);
   insert into posts (crew_id, account_id, body, kind) values (c.id, p_account, 'Started the crew 🔒 Let''s go.', 'join');
   return c;
@@ -361,6 +403,7 @@ begin
   return c;
 end $$;
 
+revoke execute on function li_avg_range(uuid, date, date), li_start_for(text, date) from public, anon, authenticated;
 revoke execute on function li_account(uuid), li_my_challenge(uuid, uuid), li_goal_pct(uuid), li_score(uuid, date), li_avg(uuid, int),
   li_new_challenge(uuid, text, date, jsonb, jsonb), li_join(uuid, uuid, uuid), li_new_crew(uuid, text, uuid), li_crew_action(uuid, uuid, text, text)
   from public, anon, authenticated;
@@ -378,7 +421,7 @@ declare c crews;
 begin
   select * into c from crews where code = upper(trim(p_code));
   if c.id is null then raise exception 'bad_code'; end if;
-  return json_build_object('name', c.name, 'code', c.code, 'members', (select count(*) from crew_members where crew_id = c.id));
+  return json_build_object('name', c.name, 'code', c.code, 'kickoff', c.kickoff_date, 'members', (select count(*) from crew_members where crew_id = c.id));
 end $$;
 
 -- Create an account with a first 50-day challenge, goals and trackers.
@@ -401,7 +444,7 @@ begin
   values (p_username, crypt(p_pin, gen_salt('bf')), p_color, p_photo)
   returning * into a;
 
-  ch := li_new_challenge(a.id, 'My 50', p_start, p_items, p_goals);
+  ch := li_new_challenge(a.id, 'My 50', li_start_for(p_join_code, p_start), p_items, p_goals);
 
   for t in select * from jsonb_array_elements(p_trackers) loop
     insert into trackers (account_id, label, unit, daily_target, sort)
@@ -426,6 +469,11 @@ begin
     select * into c from crews where code = upper(trim(p_join_code));
     if c.id is null then raise exception 'bad_code'; end if;
     if exists (select 1 from crew_members where crew_id = c.id and account_id = a.id) then raise exception 'already_in_crew'; end if;
+  end if;
+  if p_for_crew is not null then
+    select greatest(p_start, kickoff_date) into p_start from crews where id = p_for_crew;
+  else
+    p_start := li_start_for(p_join_code, p_start);
   end if;
   ch := li_new_challenge(a.id, p_name, p_start, p_items, p_goals);
   if p_for_crew is not null then
@@ -486,7 +534,7 @@ begin
         'logs', coalesce((select json_object_agg(l.log_date::text, l.value) from tracker_logs l where l.tracker_id = t.id), '{}'::json))
         order by t.sort, t.created_at) from trackers t where t.account_id = a.id), '[]'::json),
     'crews', coalesce((select json_agg(json_build_object('id', c.id, 'name', c.name, 'code', c.code, 'captain', c.captain_id = a.id,
-        'challengeId', cm.challenge_id, 'members', (select count(*) from crew_members x where x.crew_id = c.id)) order by cm.joined_at)
+        'challengeId', cm.challenge_id, 'kickoff', c.kickoff_date, 'members', (select count(*) from crew_members x where x.crew_id = c.id)) order by cm.joined_at)
         from crew_members cm join crews c on c.id = cm.crew_id where cm.account_id = a.id), '[]'::json)
   );
 end $$;
@@ -500,7 +548,8 @@ begin
   select * into c from crews where id = p_crew;
   if c.id is null or not exists (select 1 from crew_members where crew_id = c.id and account_id = a.id) then raise exception 'not_in_crew'; end if;
   return json_build_object(
-    'id', c.id, 'name', c.name, 'code', c.code, 'captainId', c.captain_id,
+    'id', c.id, 'name', c.name, 'code', c.code, 'captainId', c.captain_id, 'kickoff', c.kickoff_date,
+    'champion', exists (select 1 from season_winners w where w.crew_id = c.id and w.week_start = (date_trunc('week', li_today())::date - 7)),
     'members', coalesce((select json_agg(json_build_object(
         'id', x.id, 'name', x.username, 'color', x.color, 'photo', x.photo, 'challengeId', ch.id, 'startDate', ch.start_date, 'items', ch.items,
         'days', coalesce((select json_object_agg(d.day::text, d.done) from days d where d.challenge_id = ch.id), '{}'::json),
@@ -518,51 +567,55 @@ begin
   );
 end $$;
 
--- The public crew-vs-crew board: crew name, active members and score only.
--- A crew needs 3+ people who are in their 50 days (or finished within the last week) to be ranked.
+-- The public crew-vs-crew board, in weekly seasons (Monday to Sunday, Sydney time).
+-- Crew score = average of its members' scores this week. A crew needs 3+ members in their 50 days this week to be ranked.
+-- The first time anyone opens the board in a new week, last week's winner is recorded and their crew gets a post.
+create or replace function li_season(p_week_start date) returns table (crew_id uuid, name text, active bigint, score numeric)
+language sql stable security definer set search_path = public as $$
+  select c.id, c.name, count(ch.id), round(avg(li_avg_range(ch.id, p_week_start, p_week_start + 6)), 1)
+  from crews c
+  join crew_members cm on cm.crew_id = c.id
+  join challenges ch on ch.id = cm.challenge_id
+    and ch.start_date <= least(p_week_start + 6, li_today()) and ch.start_date + 49 >= p_week_start
+  group by c.id, c.name
+$$;
+revoke execute on function li_season(date) from public, anon, authenticated;
+
 create or replace function get_board(p_token uuid) returns json
-language plpgsql stable security definer set search_path = public as $$
-declare a accounts;
+language plpgsql volatile security definer set search_path = public as $$
+declare a accounts; ws date; prev date; w record;
 begin
   a := li_account(p_token);
-  return coalesce((select json_agg(b order by b.ranked desc, b.week desc nulls last, b.name) from (
-    select c.id, c.name,
-      count(ch.id) as active,
-      round(avg(li_avg(ch.id, 7)), 1) as week,
-      round(avg(li_avg(ch.id, null)), 1) as overall,
-      exists (select 1 from crew_members m where m.crew_id = c.id and m.account_id = a.id) as mine,
-      count(ch.id) >= 3 as ranked
-    from crews c
-    join crew_members cm on cm.crew_id = c.id
-    join challenges ch on ch.id = cm.challenge_id
-      and ch.start_date <= li_today() and ch.start_date + 49 >= li_today() - 6
-    group by c.id
-    having count(ch.id) >= 3 or exists (select 1 from crew_members m where m.crew_id = c.id and m.account_id = a.id)
-  ) b), '[]'::json);
+  ws := date_trunc('week', li_today())::date;
+  prev := ws - 7;
+  if not exists (select 1 from season_winners where week_start = prev) then
+    select * into w from li_season(prev) s where s.active >= 3 and s.score is not null order by s.score desc, s.active desc limit 1;
+    if w.crew_id is not null then
+      insert into season_winners (week_start, crew_id, crew_name, score) values (prev, w.crew_id, w.name, w.score) on conflict do nothing;
+      insert into posts (crew_id, account_id, body, kind, ref_key)
+      select w.crew_id, c.captain_id, '👑 Crew of the Week! Top of the Ranks last week with ' || round(w.score) || '%.', 'season', prev::text
+      from crews c where c.id = w.crew_id and c.captain_id is not null
+      on conflict do nothing;
+    end if;
+  end if;
+  return json_build_object(
+    'weekStart', ws, 'weekEnd', ws + 6,
+    'crews', coalesce((select json_agg(b order by b.ranked desc, b.score desc nulls last, b.active desc, b.name) from (
+        select s.crew_id as id, s.name, s.active, s.score,
+          exists (select 1 from crew_members m where m.crew_id = s.crew_id and m.account_id = a.id) as mine,
+          s.active >= 3 as ranked,
+          exists (select 1 from season_winners sw where sw.crew_id = s.crew_id and sw.week_start = prev) as champion
+        from li_season(ws) s
+        where s.active >= 3 or exists (select 1 from crew_members m where m.crew_id = s.crew_id and m.account_id = a.id)
+      ) b), '[]'::json),
+    'champions', coalesce((select json_agg(json_build_object('weekStart', sw.week_start, 'name', sw.crew_name, 'score', sw.score,
+        'mine', exists (select 1 from crew_members m where m.crew_id = sw.crew_id and m.account_id = a.id)) order by sw.week_start desc)
+      from (select * from season_winners order by week_start desc limit 6) sw), '[]'::json)
+  );
 end $$;
 
 -- ---------- crews ----------
-create or replace function create_crew(p_token uuid, p_name text, p_challenge uuid) returns json
-language plpgsql security definer set search_path = public as $$
-declare a accounts; c crews;
-begin
-  a := li_account(p_token);
-  perform li_my_challenge(a.id, p_challenge);
-  c := li_new_crew(a.id, p_name, p_challenge);
-  return json_build_object('id', c.id, 'code', c.code, 'name', c.name);
-end $$;
-
-create or replace function join_crew(p_token uuid, p_code text, p_challenge uuid) returns json
-language plpgsql security definer set search_path = public as $$
-declare a accounts; c crews;
-begin
-  a := li_account(p_token);
-  perform li_my_challenge(a.id, p_challenge);
-  select * into c from crews where code = upper(trim(p_code));
-  if c.id is null then raise exception 'bad_code'; end if;
-  perform li_join(a.id, c.id, p_challenge);
-  return json_build_object('id', c.id, 'name', c.name);
-end $$;
+-- Joining or starting a crew always creates a new 50 days for it: see create_challenge.
 
 create or replace function leave_crew(p_token uuid, p_crew uuid) returns void
 language plpgsql security definer set search_path = public as $$
@@ -607,6 +660,21 @@ begin
   v := li_make_code();
   update crews set code = v where id = p_crew;
   return json_build_object('code', v);
+end $$;
+
+-- Move the crew's kick-off date (only before it kicks off). Members who haven't started move with it.
+create or replace function set_kickoff(p_token uuid, p_crew uuid, p_date date) returns void
+language plpgsql security definer set search_path = public as $$
+declare c crews;
+begin
+  c := li_captain(p_token, p_crew);
+  if c.kickoff_date <= li_today() then raise exception 'already_kicked_off'; end if;
+  if p_date < li_today() or p_date > li_today() + 14 then raise exception 'bad_start'; end if;
+  update challenges ch set start_date = p_date
+  from crew_members cm
+  where cm.crew_id = c.id and ch.id = cm.challenge_id and ch.start_date = c.kickoff_date
+    and not exists (select 1 from days d where d.challenge_id = ch.id);
+  update crews set kickoff_date = p_date where id = c.id;
 end $$;
 
 create or replace function remove_member(p_token uuid, p_crew uuid, p_account uuid) returns void
