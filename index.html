@@ -210,6 +210,67 @@ nav button.on{color:var(--acc)}
 .mrow .btn{margin:0}
 #toast{position:fixed;left:50%;bottom:calc(96px + var(--hostbar));transform:translateX(-50%) translateY(20px);background:var(--text);color:var(--ink);padding:12px 18px;border-radius:12px;font-weight:700;font-size:14px;opacity:0;transition:all .25s;pointer-events:none;z-index:60;max-width:90%;text-align:center}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ---- v2 additions ---- */
+.streak{display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:var(--r);border:1px solid var(--line);background:var(--card);margin-bottom:14px}
+.streak .fl{font-size:40px;line-height:1;filter:grayscale(1) opacity(.45);transition:filter .2s}
+.streak.lit{border-color:rgba(255,122,69,.55);background:linear-gradient(0deg,rgba(255,122,69,.08),rgba(255,122,69,.08)),var(--card)}
+.streak.lit .fl,.streak.risk .fl{filter:none}
+.streak.risk .fl{animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{50%{transform:scale(1.12)}}
+.streak .num{font-family:'Archivo Black','Arial Black',system-ui,sans-serif;font-size:44px;line-height:.9;letter-spacing:-.03em}
+.streak .lab{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.streak .sub{font-size:13px;color:var(--mute);margin-top:3px}
+.streak .best{margin-left:auto;text-align:right}
+.streak .best b{font-family:'Archivo Black','Arial Black',system-ui,sans-serif;font-size:22px;display:block}
+.streak .best small{font-size:11px;color:var(--mute);letter-spacing:.08em;text-transform:uppercase}
+.trk{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}
+.trk:last-child{border:0}
+.trk .tl{flex:1;min-width:0}
+.trk .tl b{display:block;font-size:15px}
+.trk .tl small{font-size:12px;color:var(--mute)}
+.trk input{width:96px;background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:9px 10px;font-size:15px;outline:none;text-align:right}
+.trk input:focus{border-color:var(--acc)}
+.trk button.sm{padding:9px 12px;border-radius:10px;background:var(--card2);border:1px solid var(--line);font-weight:700;font-size:13px}
+.chiprow{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:14px;scrollbar-width:none}
+.chiprow::-webkit-scrollbar{display:none}
+.cchip{flex:0 0 auto;padding:9px 14px;border-radius:999px;border:1px solid var(--line);font-size:14px;font-weight:600;color:#C9CCC6;white-space:nowrap}
+.cchip.on{background:var(--acc);border-color:var(--acc);color:var(--ink)}
+.cchip.add{border-style:dashed;color:var(--mute)}
+.crewhead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.crewhead h2{font-size:24px}
+.rk{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.rk:last-child{border:0}
+.rk .rank{width:28px;font-family:'Archivo Black','Arial Black',system-ui,sans-serif;color:var(--mute);font-size:16px}
+.rk.top .rank{color:var(--acc)}
+.rk .cn{flex:1;min-width:0}
+.rk .cn b{display:block;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rk .cn small{font-size:12px;color:var(--mute)}
+.rk.mine .cn b{color:var(--acc)}
+.rk .sc{font-family:'Archivo Black','Arial Black',system-ui,sans-serif;font-size:20px}
+.crest{flex:0 0 auto;width:36px;height:36px;border-radius:10px;display:grid;place-items:center;font-family:'Archivo Black','Arial Black',system-ui,sans-serif;font-size:15px;color:var(--ink)}
+.hist{list-style:none;margin-top:10px;border-top:1px solid var(--line)}
+.hist li{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
+.hist li span:first-child{flex:1;color:var(--mute)}
+.hist li .pbt{font-size:11px;font-weight:700;color:var(--hot)}
+.bars{display:flex;align-items:flex-end;gap:4px;height:64px;margin-top:12px;position:relative}
+.bars i{flex:1;background:var(--card2);border-radius:3px 3px 0 0;min-height:2px}
+.bars i.v{background:rgba(200,245,66,.55)}
+.bars i.hit{background:var(--acc)}
+.bars .tline{position:absolute;left:0;right:0;border-top:1px dashed var(--mute)}
+.optc{display:block;width:100%;text-align:left;padding:14px;border-radius:14px;border:1px solid var(--line);margin-bottom:10px}
+.optc.on{border-color:var(--acc);background:rgba(200,245,66,.05)}
+.optc b{display:block;font-size:15px}
+.optc small{font-size:13px;color:var(--mute)}
+.optc .input{margin-top:10px}
+.invite{border-color:rgba(200,245,66,.4)}
+.mbody .input{margin-top:8px}
+.danger{color:#FF8A7A !important}
+.memrow{display:flex;align-items:center;gap:10px;padding:8px 0}
+.memrow span{flex:1;font-weight:600}
+nav button{font-size:11px}
+
+.optc button{display:block;width:100%;text-align:left}
 </style>
 </head>
 <body>
@@ -223,7 +284,7 @@ nav button.on{color:var(--acc)}
    Shared data lives in Supabase. The app only talks to it
    through the database functions in supabase/schema.sql.
    ========================================================= */
-const LEN = 50, DAY = 864e5, MIN_ITEMS = 5, MAX_ITEMS = 12, MAX_GOALS = 3;
+const LEN = 50, DAY = 864e5, MIN_ITEMS = 5, MAX_ITEMS = 12, MAX_GOALS = 3, MAX_TRACKERS = 4;
 
 const QUOTES = [
   {t:"Don't count the days. Make the days count.", a:"Muhammad Ali"},
@@ -231,54 +292,72 @@ const QUOTES = [
   {t:"Fall seven times, stand up eight.", a:"Japanese proverb"},
   {t:"Discipline equals freedom.", a:"Jocko Willink"},
   {t:"Hard choices, easy life. Easy choices, hard life.", a:"Jerzy Gregorek"},
-  {t:"Let us not become weary in doing good.", a:"Galatians 6:9"},
   {t:"Nobody remembers the day you felt like it. They remember that you showed up.", a:"Locked In 50"},
   {t:"You don't have to be extreme. You have to be consistent.", a:"Locked In 50"},
   {t:"Future you is watching. Make him proud.", a:"Locked In 50"},
   {t:"One day, or day one. You decide.", a:"Locked In 50"},
   {t:"Win the morning, win the day.", a:"Locked In 50"},
   {t:"Do it tired. Do it anyway.", a:"Locked In 50"},
-  {t:"Do not despise these small beginnings.", a:"Zechariah 4:10"},
+  {t:"The streak is the reward. Don't break it.", a:"Locked In 50"},
   {t:"The list doesn't care how you feel. Tick it anyway.", a:"Locked In 50"},
   {t:"Small wins, stacked daily, become big ones.", a:"Locked In 50"},
   {t:"Comfort is a slow leak. Plug it.", a:"Locked In 50"},
   {t:"Be the one who didn't quit on day 30.", a:"Locked In 50"},
-  {t:"I can do all this through him who gives me strength.", a:"Philippians 4:13"},
   {t:"Your crew is only as strong as the one who shows up today. Be that one.", a:"Locked In 50"},
   {t:"Halfway is not the finish line. Keep the foot down.", a:"Locked In 50"},
   {t:"Excuses are easy. Results take work.", a:"Locked In 50"},
   {t:"Every tick is a vote for the person you're becoming.", a:"Locked In 50"},
   {t:"The hard days are the ones that count double.", a:"Locked In 50"},
   {t:"Strong is built, not born.", a:"Locked In 50"},
-  {t:"Be strong and courageous. Do not be afraid.", a:"Joshua 1:9"}
+  {t:"Motivation gets you started. Habit keeps you going.", a:"Locked In 50"},
+  {t:"Beat yesterday. That's the whole game.", a:"Locked In 50"},
+  {t:"Locked in means no negotiating with yourself.", a:"Locked In 50"}
 ];
 
 const SUGGESTIONS = ['45 min workout','Drink 3L water','Read 10 pages','No junk food','No soft drink','10,000 steps','Bed by 10:30','No phone in bed','Cold shower','Devotion / quiet time','Study 1 hour','Progress photo','Stretch 10 min','No energy drinks','Make my bed'];
 const GOAL_TEMPLATES = {
-  weight:{label:'Weight', unit:'kg', shared:false},
-  pushups:{label:'Push-ups (one set)', unit:'reps', shared:true},
-  run:{label:'5 km run time', unit:'min', shared:true},
-  custom:{label:'', unit:'', shared:true}
+  weight:  {label:'Weight', unit:'kg', kind:'number', shared:false},
+  pushups: {label:'Push-ups (one set)', unit:'reps', kind:'number', shared:true},
+  run:     {label:'5 km run', unit:'', kind:'time', shared:true},
+  rower:   {label:'500 cal on the rower', unit:'', kind:'time', shared:true},
+  custom:  {label:'', unit:'', kind:'number', shared:true}
+};
+const TRACKER_TEMPLATES = {
+  calories:{label:'Calories', unit:'kcal'},
+  water:   {label:'Water', unit:'L'},
+  steps:   {label:'Steps', unit:''},
+  protein: {label:'Protein', unit:'g'},
+  custom:  {label:'', unit:''}
 };
 const COLORS = ['#5EC8FF','#FF9F45','#C792FF','#FF6B8A','#4BE3B0','#FFD84D','#7AA2FF','#F28CFF'];
 
-/* ---------- date helpers ---------- */
+/* ---------- small helpers ---------- */
 const ymd = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const parse = s => { const [a,b,c] = s.split('-').map(Number); return new Date(a,b-1,c); };
 const addDays = (s,n) => { const d = parse(s); d.setDate(d.getDate()+n); return ymd(d); };
 const diff = (a,b) => Math.round((parse(b)-parse(a))/DAY);
-const nowMs = () => Date.now();
-const today = () => ymd(new Date(nowMs()));
+const today = () => ymd(new Date());
 const fmt = s => parse(s).toLocaleDateString('en-AU',{day:'numeric',month:'short'});
-const uid = () => Math.random().toString(36).slice(2,9);
-const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function hash(str){ let h = 2166136261; for (const ch of str){ h ^= ch.charCodeAt(0); h = Math.imul(h,16777619); } return (h>>>0)/4294967296; }
-function ago(ts){ const s = (nowMs()-ts)/1000; if (s<60) return 'now'; if (s<3600) return Math.floor(s/60)+'m'; if (s<86400) return Math.floor(s/3600)+'h'; return Math.floor(s/86400)+'d'; }
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const num = n => (+n).toLocaleString('en-AU', {maximumFractionDigits: 2});
+function ago(ts){ const s = (Date.now()-ts)/1000; if (s<60) return 'now'; if (s<3600) return Math.floor(s/60)+'m'; if (s<86400) return Math.floor(s/3600)+'h'; return Math.floor(s/86400)+'d'; }
+// "24:38" → 1478 seconds; "1:02:10" → 3730; a bare "25" is read as minutes.
+function parseTime(str){
+  str = String(str || '').trim(); if (!str) return NaN;
+  if (/^\d+(\.\d+)?$/.test(str)) return Math.round(parseFloat(str) * 60);
+  const p = str.split(':').map(x => x.trim());
+  if (p.some(x => !/^\d+(\.\d+)?$/.test(x)) || p.length > 3) return NaN;
+  return Math.round(p.reduce((a, x) => a*60 + parseFloat(x), 0));
+}
+function fmtTime(sec){ sec = Math.round(+sec); const h = Math.floor(sec/3600), m = Math.floor(sec%3600/60), s = sec%60;
+  return h ? `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}` : `${m}:${String(s).padStart(2,'0')}`; }
+const gval = (g, v) => g.kind === 'time' ? fmtTime(v) : num(v) + (g.unit ? ' ' + g.unit : '');
+const parseGoal = (g, str) => g.kind === 'time' ? parseTime(str) : parseFloat(str);
 
 /* ---------- connection ---------- */
 const SB_URL = 'https://ifuuarfpkusckedjjfzi.supabase.co';
 const SB_KEY = 'sb_publishable_WhEGS2WreSyNn4IHRcwdrQ_YVdQAyg2'; // public app key, safe to ship
-const SESSION = 'li50-session';
+const SESSION = 'li50-session', CREWKEY = 'li50-crew';
 async function rpc(fn, args){
   let r;
   try { r = await fetch(`${SB_URL}/rest/v1/rpc/${fn}`, { method:'POST', headers:{ apikey:SB_KEY, 'Content-Type':'application/json' }, body:JSON.stringify(args || {}) }); }
@@ -289,51 +368,70 @@ async function rpc(fn, args){
 }
 const ERR = {
   bad_code:"That crew code doesn't exist. Check it with whoever invited you.",
-  name_taken:'Someone in the crew already has that name.',
-  bad_pin:"PIN doesn't match.", locked:'Too many wrong PINs. Try again in 15 minutes.',
+  username_taken:'That username is taken. Try another.',
+  bad_username:'Usernames are 3–20 letters, numbers, dots or underscores. No spaces.',
+  name_not_allowed:"That name isn't allowed. Pick another.",
+  no_account:"No account with that username.", bad_pin:"PIN doesn't match.", locked:'Too many wrong PINs. Try again in 15 minutes.',
   offline:"Can't connect. Check your internet and try again.",
-  photo_too_big:'That photo is too big.', day_closed:"That day's closed now.", bad_token:'Please log in again.'
+  photo_too_big:'That photo is too big.', day_closed:"That day's closed now.", bad_token:'Please log in again.',
+  not_in_crew:"You're not in that crew any more.", too_many_crews:'That\'s the most crews you can be in (10).', crew_full:'That crew is full (50 people).',
+  bad_crew_name:'Crew names are 2–30 characters.', not_captain:'Only the crew captain can do that.', too_many_trackers:'You can have up to 4 trackers.'
 };
 const errMsg = e => ERR[e.message] || 'Something went wrong. Try again.';
-function getSession(){ try { return JSON.parse(localStorage.getItem(SESSION)); } catch(e){ return null; } }
-function setSession(x){ try { x ? localStorage.setItem(SESSION, JSON.stringify(x)) : localStorage.removeItem(SESSION); } catch(e){} }
+const ls = { get(k){ try { return localStorage.getItem(k); } catch(e){ return null; } }, set(k,v){ try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k,v); } catch(e){} } };
+function getSession(){ try { return JSON.parse(ls.get(SESSION)); } catch(e){ return null; } }
+function setSession(x){ ls.set(SESSION, x ? JSON.stringify(x) : null); }
 
 /* ---------- state ---------- */
-let S = null;                    // the crew, as last loaded from the server
-let session = getSession();      // { code, token } for whoever is logged in on this device
-const ui = { view:'welcome', tab:'today', board:'overall', draft:null, err:'', pick:null, jf:{}, loading:!!session };
+let session = getSession();            // { token } for whoever is logged in on this device
+let ME = null, CREW = null, BOARD = null;
+const ui = { view:'welcome', tab:'today', lb:'week', board:'week', crewId: ls.get(CREWKEY), draft:null, err:'', jf:{}, loading:!!session, pendingJoin:null, crewForm:null };
+const tok = () => session && session.token;
 
+function normGoals(gs){ return (gs || []).map(g => ({ ...g, start: g.start != null ? +g.start : g.start, target: g.target != null ? +g.target : g.target,
+  logs: (g.logs || []).map(l => ({ date: l.date, value: +l.value })) })); }
+async function loadMe(){
+  const m = await rpc('get_me', { p_token: tok() });
+  m.goals = normGoals(m.goals); m.days = m.days || {};
+  m.trackers = (m.trackers || []).map(t => ({ ...t, target: t.target != null ? +t.target : null, logs: Object.fromEntries(Object.entries(t.logs || {}).map(([k,v]) => [k, +v])) }));
+  ME = m;
+  if (ui.crewId !== '__add' && !ME.crews.some(c => c.id === ui.crewId)) { ui.crewId = ME.crews[0] ? ME.crews[0].id : null; ls.set(CREWKEY, ui.crewId); }
+}
+async function loadCrew(){
+  if (!ui.crewId || ui.crewId === '__add') { CREW = null; return; }
+  const c = await rpc('get_crew', { p_token: tok(), p_crew: ui.crewId });
+  c.users = {}; for (const m of c.members) { m.days = m.days || {}; c.users[m.id] = m; }
+  CREW = c;
+}
+async function loadBoard(){ BOARD = await rpc('get_board', { p_token: tok() }); }
 async function refresh(){
   if (!session) return;
   try {
-    const d = await rpc('get_crew', { p_token: session.token });
-    const users = {};
-    for (const m of d.members) users[m.id] = { ...m, days: m.days || {},
-      goals: (m.goals || []).map(g => ({ ...g, start: g.start != null ? +g.start : g.start, target: g.target != null ? +g.target : g.target,
-        logs: (g.logs || []).map(l => ({ date: l.date, value: +l.value })) })) };
-    S = { group: d.crew, users, feed: d.feed, me: d.me };
+    await loadMe();
+    await Promise.all([ loadCrew().catch(e => { if (e.message === 'not_in_crew') { ui.crewId = null; CREW = null; } else throw e; }),
+                        ui.tab === 'ranks' ? loadBoard() : null ]);
   } catch(e){
-    if (e.message === 'bad_token'){ session = null; setSession(null); S = null; ui.view = 'welcome'; }
-    else if (!S) toast(errMsg(e));
+    if (e.message === 'bad_token'){ session = null; setSession(null); ME = CREW = BOARD = null; ui.view = 'welcome'; }
+    else if (!ME) toast(errMsg(e));
   }
   ui.loading = false;
 }
 let saveQ = Promise.resolve();
 const queue = fn => (saveQ = saveQ.then(fn, fn));
 
-/* ---------- scoring ---------- */
+/* ---------- scoring (works on any person: {startDate, items, days}) ---------- */
 function score(u,d){
   const tot = u.items.reduce((a,i)=>a+i.weight,0), done = u.days[d] || [];
   const got = u.items.filter(i=>done.includes(i.id)).reduce((a,i)=>a+i.weight,0);
   return tot ? Math.round(got/tot*100) : 0;
 }
 const dayNum = u => diff(u.startDate, today()) + 1;
-function counted(u){ // days that count toward averages: every past challenge day, plus today once something is ticked
+function counted(u){
   const t = today(), out = [], n = Math.min(dayNum(u), LEN);
   for (let i=0;i<n;i++){ const d = addDays(u.startDate,i); if (d < t || (u.days[d] && u.days[d].length)) out.push(d); }
   return out;
 }
-function avg(u,last){ let ds = counted(u); if (last) ds = ds.slice(-last); return ds.length ? Math.round(ds.reduce((a,d)=>a+score(u,d),0)/ds.length) : 0; }
+function avg(u,last){ let ds = counted(u); if (last) ds = ds.filter(d => d > addDays(today(), -last)); return ds.length ? Math.round(ds.reduce((a,d)=>a+score(u,d),0)/ds.length) : 0; }
 function streak(u){ const t = today(); let d = score(u,t)===100 ? t : addDays(t,-1), n = 0;
   while (d >= u.startDate && diff(u.startDate,d) < LEN && score(u,d) === 100){ n++; d = addDays(d,-1); } return n; }
 function bestStreak(u){ let b=0,c=0; const n = Math.min(dayNum(u),LEN);
@@ -341,7 +439,10 @@ function bestStreak(u){ let b=0,c=0; const n = Math.min(dayNum(u),LEN);
 const fullDays = u => counted(u).filter(d => score(u,d)===100).length;
 const cur = g => g.logs.length ? g.logs[g.logs.length-1].value : g.start;
 function pct(g){ if (g.pct != null) return g.pct; const span = g.target-g.start; return span ? Math.round((cur(g)-g.start)/span*100) : 100; }
+const lowerBetter = g => g.target < g.start;
+function bestOf(g){ const v = g.logs.map(l=>l.value); if (!v.length) return null; return lowerBetter(g) ? Math.min(...v) : Math.max(...v); }
 const clamp = v => Math.max(0, Math.min(100, v));
+const quoteFor = n => QUOTES[(Math.max(n,1)-1) % QUOTES.length];
 
 /* ---------- brand ---------- */
 const SIL = 'M144 99C127 112 126 115 117 132C108 149 95 176 90 201C85 226 84 259 88 285C92 311 112 337 115 358C118 379 100 387 103 411C106 435 114 470 130 504C146 538 188 589 202 613C216 637 214 640 217 650C220 660 224 660 218 670C212 680 191 704 182 713C173 722 169 723 162 725C155 727 151 726 142 723C133 720 117 709 107 706C97 703 99 701 81 705C63 709 14 665 0 731C-14 797 -155 1038 0 1099C155 1160 776 1134 931 1099C1086 1064 933 925 931 889C929 853 931 894 917 883C903 872 875 841 848 823C821 805 786 795 756 777C726 759 688 729 671 716C654 703 663 712 656 700C649 688 649 655 627 644C605 633 543 636 522 632C501 628 504 631 499 619C494 607 495 579 495 561C495 543 498 521 500 509C502 497 502 497 507 490C512 483 525 476 531 468C537 460 540 464 543 445C546 426 551 378 550 356C549 334 540 332 539 316C538 300 542 280 541 261C540 242 540 226 531 202C522 178 506 139 489 115C472 91 446 72 430 60C414 48 405 47 392 43C379 39 372 38 354 36C336 34 306 33 287 34C268 35 255 37 243 40C231 43 234 41 217 51C200 61 161 86 144 99Z M2 734 L-600 1100 L2 1100 Z M930 898 L1600 1100 L930 1100 Z';
@@ -355,9 +456,10 @@ function badge(size, ring){ const id = 'bg'+(badgeN++);
 try { document.getElementById('fav').href = 'data:image/svg+xml,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320"><defs><clipPath id="c"><circle cx="160" cy="160" r="160"/></clipPath></defs><circle cx="160" cy="160" r="160" fill="#C8F542"/><g clip-path="url(#c)"><path transform="translate(62 38) scale(0.31)" d="${SIL}" fill="#0E0F0C"/></g></svg>`); } catch(e){}
 
 /* ---------- little UI bits ---------- */
-const avatar = (u, sz) => { const s = sz ? `width:${sz}px;height:${sz}px;font-size:${Math.round(sz*.42)}px;` : '';
-  return u.photo ? `<div class="av" role="img" aria-label="${esc(u.name)}" style="${s}background:#222 url(${u.photo}) center/cover"></div>`
-                 : `<div class="av" style="${s}background:${u.color}">${esc(u.name[0].toUpperCase())}</div>`; };
+const avatar = (u, sz) => { const s = sz ? `width:${sz}px;height:${sz}px;font-size:${Math.round(sz*.42)}px;` : ''; const nm = u.name || u.username || '?';
+  return u.photo ? `<div class="av" role="img" aria-label="${esc(nm)}" style="${s}background:#222 url(${u.photo}) center/cover"></div>`
+                 : `<div class="av" style="${s}background:${u.color || '#888'}">${esc(nm[0].toUpperCase())}</div>`; };
+function crest(name){ let h = 0; for (const ch of name) h = (h*31 + ch.charCodeAt(0)) >>> 0; return `<div class="crest" style="background:${COLORS[h % COLORS.length]}">${esc(name.trim()[0] || '?').toUpperCase()}</div>`; }
 function toAvatar(file){ return new Promise((res, rej) => { const r = new FileReader();
   r.onload = () => { const img = new Image(); img.onload = () => { const N = 240, c = document.createElement('canvas'), s = Math.min(img.width, img.height);
     c.width = c.height = N; c.getContext('2d').drawImage(img, (img.width-s)/2, (img.height-s)/2, s, s, 0, 0, N, N); res(c.toDataURL('image/jpeg', .82)); };
@@ -369,18 +471,22 @@ function ring(v){ const r=40, c=2*Math.PI*r;
   <circle cx="48" cy="48" r="${r}" stroke="#C8F542" stroke-width="8" fill="none" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${c*(1-v/100)}" style="transition:stroke-dashoffset .4s"/></svg>
   <div class="val"><div><b>${v}%</b><small>today</small></div></div></div>`; }
 function spark(g){
-  const vals = g.logs.map(l=>l.value); if (vals.length < 2) return '';
+  const vals = [g.start, ...g.logs.filter(l => !(l.date === ME.startDate && l.value === g.start)).map(l=>l.value)]; if (vals.length < 2) return '';
   const W=300,H=64,P=6, all=[...vals,g.target], mn=Math.min(...all), mx=Math.max(...all), rg=(mx-mn)||1;
   const y = v => H-P-(v-mn)/rg*(H-2*P), x = i => P+i*(W-2*P)/(vals.length-1);
   const pts = vals.map((v,i)=>`${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
-  return `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" style="margin-top:10px;display:block">
-    <line x1="${P}" x2="${W-P}" y1="${y(g.target)}" y2="${y(g.target)}" stroke="#8D9391" stroke-dasharray="4 4" stroke-width="1"/>
-    <text x="${W-P}" y="${y(g.target)<16?y(g.target)+12:y(g.target)-4}" fill="#8D9391" font-size="10" text-anchor="end">target ${g.target}</text>
+  const ty = y(g.target);
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" style="margin-top:10px;display:block" aria-hidden="true">
+    <line x1="${P}" x2="${W-P}" y1="${ty}" y2="${ty}" stroke="#8D9391" stroke-dasharray="4 4" stroke-width="1"/>
+    <text x="${W-P}" y="${ty<16?ty+12:ty-4}" fill="#8D9391" font-size="10" text-anchor="end">target ${gval(g, g.target)}</text>
     <polyline points="${pts}" fill="none" stroke="#C8F542" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
     <circle cx="${x(vals.length-1)}" cy="${y(vals[vals.length-1])}" r="4" fill="#C8F542"/></svg>`;
 }
-const steps = n => `<div class="steps">${[1,2,3].map(i=>`<i class="${i<=n?'on':''}"></i>`).join('')}</div>`;
-const quoteFor = n => QUOTES[(n-1) % QUOTES.length];
+const steps = (n, of=5) => `<div class="steps">${Array.from({length:of},(_,i)=>`<i class="${i<n?'on':''}"></i>`).join('')}</div>`;
+const err = () => ui.err ? `<div class="err">${esc(ui.err)}</div>` : '';
+const footer = (back, nextAction, nextLabel, disabled) => `<div class="footer"><div class="in row"><button class="btn ghost" style="flex:0 0 30%" data-a="go" data-v="${back}">Back</button>
+  <button class="btn primary" data-a="${nextAction}" ${disabled?'disabled':''}>${nextLabel}</button></div></div>`;
+const inviteLink = code => `${location.origin}/?join=${encodeURIComponent(code)}`;
 
 /* ---------- add to home screen ---------- */
 const A2HS = 'li50-a2hs-hidden';
@@ -389,18 +495,17 @@ const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platfo
 let installEvt = null;
 addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvt = e; });
 addEventListener('appinstalled', () => { installEvt = null; toast('Added to your home screen'); });
-function a2hsHidden(){ try { return localStorage.getItem(A2HS) === '1'; } catch(e){ return false; } }
 function a2hsBanner(){
-  if (isStandalone() || a2hsHidden()) return '';
+  if (isStandalone() || ls.get(A2HS) === '1') return '';
   return `<div class="card a2hs">${badge(40)}<div style="flex:1;min-width:0"><b>Add it to your home screen</b><small>Opens like an app. One tap, every day.</small></div>
     <button class="sbtn" data-a="a2hs">Add</button><button class="x" data-a="a2hs-hide" aria-label="Dismiss">×</button></div>`;
 }
+const SHARE = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="Share icon" style="vertical-align:-3px"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M6 11v9h12v-9"/></svg>';
 async function showA2hs(){
   if (installEvt){ installEvt.prompt(); try { await installEvt.userChoice; } catch(e){} installEvt = null; return; }
-  const relog = '<p class="tip">You\'ll log in once more from the home screen icon, with your crew code and PIN.</p>';
+  const relog = '<p class="tip">You\'ll log in once more from the home screen icon, with your username and PIN.</p>';
   const body = isIOS
-    ? `<ol><li>Make sure you're in <b>Safari</b>.</li>
-        <li>Tap the <b>Share</b> button <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="Share icon" style="vertical-align:-3px"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M6 11v9h12v-9"/></svg> (on newer iPhones, tap <b>•••</b> first, then <b>Share</b>).</li>
+    ? `<ol><li>Make sure you're in <b>Safari</b>.</li><li>Tap the <b>Share</b> button ${SHARE} (on newer iPhones, tap <b>•••</b> first, then <b>Share</b>).</li>
         <li>Scroll down and tap <b>Add to Home Screen</b>.</li><li>Tap <b>Add</b>.</li></ol>${relog}`
     : `<ol><li>Tap the browser menu <b>⋮</b> (top right in Chrome).</li><li>Tap <b>Add to Home screen</b> or <b>Install app</b>.</li><li>Tap <b>Add</b> / <b>Install</b>.</li></ol>${relog}`;
   modal('Add Locked In 50 to your home screen', body, 'Got it', () => {}, true);
@@ -408,28 +513,30 @@ async function showA2hs(){
 
 /* ---------- onboarding ---------- */
 function vWelcome(){
+  const pj = ui.pendingJoin;
   return `<div class="welcome">
     <div class="lockup">${badge(116, true)}<div class="lname">LOCKED IN<span>50</span></div></div>
     <p class="tag">Set your list. Lock it in. 50 days.</p>
+    ${pj && pj.name ? `<div class="card invite"><div class="eyebrow">You're invited</div><h3 style="margin-top:4px;font-size:18px">Join ${esc(pj.name)}</h3><p class="mute" style="font-size:14px;margin-top:4px">Set up your 50 days and you'll land straight in the crew.</p></div>` : `
     <div class="rules">
       <div class="rule"><b>1</b><span>Build your own daily checklist. At least ${MIN_ITEMS} things.</span></div>
-      <div class="rule"><b>2</b><span>Pick up to ${MAX_GOALS} goals to chase: weight, reps, run time, anything you can measure.</span></div>
-      <div class="rule"><b>3</b><span>Lock it in. No edits for 50 days. Your crew sees your daily score.</span></div>
-    </div>
-    <button class="btn primary" data-a="go" data-v="join">Start my 50</button>
-    <button class="btn ghost" data-a="go" data-v="login">I'm already in</button>
+      <div class="rule"><b>2</b><span>Pick goals to chase and track your progress: weight, reps, run times, anything.</span></div>
+      <div class="rule"><b>3</b><span>Lock it in for 50 days. Join a crew, climb the leaderboard, take on other crews.</span></div>
+    </div>`}
+    <button class="btn primary" data-a="go" data-v="account">${pj && pj.name ? 'Start my 50 and join' : 'Start my 50'}</button>
+    <button class="btn ghost" data-a="go" data-v="login">I already have an account</button>
     <p class="built">BUILT BY CARTER</p>
     ${isStandalone()?'':'<button class="demo-note" data-a="a2hs" style="display:block;margin:14px auto 0;text-decoration:underline">Add to home screen</button>'}
   </div>`;
 }
-function vJoin(){
-  return `<div class="eyebrow" style="margin-top:8px">Join a crew</div><h2 style="margin:6px 0 18px">Who's taking it on?</h2>
-    <div class="field"><label>Crew code</label><input class="input" id="j-code" value="${esc(ui.jf.code||'')}" placeholder="From whoever invited you" autocapitalize="characters"></div>
-    <div class="field"><label>Your name</label><input class="input" id="j-name" value="${esc(ui.jf.name||'')}" placeholder="First name" maxlength="20"></div>
-    <div class="field"><label>4-digit PIN (so only you can tick your list)</label><input class="input" id="j-pin" inputmode="numeric" maxlength="4" placeholder="••••" type="password"></div>
+function vAccount(){
+  const j = ui.jf;
+  return `<div class="eyebrow" style="margin-top:8px">Create your account</div><h2 style="margin:6px 0 18px">Who's taking it on?</h2>
+    <div class="field"><label>Username (this is what your crew sees)</label><input class="input" id="j-name" value="${esc(j.name||'')}" placeholder="e.g. carter_p" maxlength="20" autocapitalize="off" autocomplete="username"></div>
+    <div class="field"><label>6-digit PIN (you'll use it to log in, so remember it)</label><input class="input" id="j-pin" inputmode="numeric" maxlength="6" placeholder="••••••" type="password" autocomplete="new-password"></div>
     <div class="field"><label>Profile photo (optional)</label><label class="photopick"><span class="pp" id="j-prev">${ui.joinPhoto?`<img src="${ui.joinPhoto}" alt="">`:'+'}</span><span id="j-ptext">${ui.joinPhoto?'Change photo':'Add a photo'}</span><input type="file" accept="image/*" id="j-photo" hidden></label></div>
-    ${ui.err?`<div class="err">${ui.err}</div>`:''}
-    <button class="btn primary" data-a="join">Next</button>
+    ${err()}
+    <button class="btn primary" data-a="account">Next</button>
     <button class="btn ghost" data-a="go" data-v="welcome">Back</button>`;
 }
 function vList(){
@@ -442,167 +549,297 @@ function vList(){
       <button class="x" data-a="rm-item" data-v="${i}" aria-label="Remove">×</button></div>`).join('')}
     <div class="addrow"><input class="input" id="add-item" placeholder="Add your own…" maxlength="40"><button data-a="add-item">Add</button></div>
     <div class="chips">${SUGGESTIONS.filter(s=>!have.includes(s.toLowerCase())).slice(0,10).map(s=>`<button class="chip" data-a="sugg" data-v="${esc(s)}">+ ${esc(s)}</button>`).join('')}</div>
-    <div class="footer"><div class="in row"><button class="btn ghost" style="flex:0 0 30%" data-a="go" data-v="join">Back</button>
-      <button class="btn primary" data-a="go" data-v="goals" ${d.items.length<MIN_ITEMS?'disabled':''}>Next</button></div></div>`;
+    ${footer('account','to-goals','Next', d.items.length<MIN_ITEMS)}`;
 }
 function vGoals(){
   const d = ui.draft;
   return `${steps(2)}<div class="eyebrow">Step 2 · Goals</div><h2 style="margin-top:6px">What are you chasing?</h2>
-    <p class="sub">Up to ${MAX_GOALS}. Works whether the number needs to go up or down. Optional, but it's good to see progress.</p>
+    <p class="sub">Up to ${MAX_GOALS}. Log your number whenever you do it and watch it move. Works whether the number needs to go up or down.</p>
     ${d.goals.map((g,i)=>`<div class="card gcard">
-      <div class="hd"><h3>Goal ${i+1}</h3><button class="x" data-a="rm-goal" data-v="${i}">×</button></div>
+      <div class="hd"><h3>Goal ${i+1}</h3><button class="x" data-a="rm-goal" data-v="${i}" aria-label="Remove goal">×</button></div>
       <div class="field"><label>What</label><input class="input" data-g="${i}" data-f="label" value="${esc(g.label)}" placeholder="e.g. Push-ups"></div>
+      <div class="field"><label>Measured in</label><div class="seg" style="display:inline-flex">
+        <button class="${g.kind!=='time'?'on':''}" data-a="gkind" data-i="${i}" data-v="number">A number</button>
+        <button class="${g.kind==='time'?'on':''}" data-a="gkind" data-i="${i}" data-v="time">A time (mm:ss)</button></div></div>
       <div class="grid2">
-        <div class="field"><label>Start</label><input class="input" data-g="${i}" data-f="start" inputmode="decimal" value="${esc(g.start)}"></div>
-        <div class="field"><label>Target</label><input class="input" data-g="${i}" data-f="target" inputmode="decimal" value="${esc(g.target)}"></div>
+        <div class="field"><label>Start${g.kind==='time'?' (mm:ss)':''}</label><input class="input" data-g="${i}" data-f="start" inputmode="${g.kind==='time'?'text':'decimal'}" value="${esc(g.start)}" placeholder="${g.kind==='time'?'28:00':''}"></div>
+        <div class="field"><label>Target${g.kind==='time'?' (mm:ss)':''}</label><input class="input" data-g="${i}" data-f="target" inputmode="${g.kind==='time'?'text':'decimal'}" value="${esc(g.target)}" placeholder="${g.kind==='time'?'24:59':''}"></div>
       </div>
-      <div class="field"><label>Unit</label><input class="input" data-g="${i}" data-f="unit" value="${esc(g.unit)}" placeholder="kg, reps, min…"></div>
-      <label class="toggle"><input type="checkbox" data-g="${i}" data-f="shared" ${g.shared?'checked':''}> Show my % progress to the crew</label>
-      <p class="note">The crew only ever sees a percentage, never your actual numbers.</p>
+      ${g.kind==='time'?'':`<div class="field"><label>Unit</label><input class="input" data-g="${i}" data-f="unit" value="${esc(g.unit)}" placeholder="kg, reps, cm…"></div>`}
+      <label class="toggle"><input type="checkbox" data-g="${i}" data-f="shared" ${g.shared?'checked':''}> Show my % progress to my crews</label>
+      <p class="note">Crews only ever see a percentage and your PBs, never your actual numbers.</p>
     </div>`).join('')}
-    ${d.goals.length<MAX_GOALS?`<div class="chips">${Object.entries({weight:'+ Weight',pushups:'+ Push-ups',run:'+ 5 km run time',custom:'+ Custom goal'}).map(([k,l])=>`<button class="chip" data-a="goal-t" data-v="${k}">${l}</button>`).join('')}</div>`:''}
-    ${ui.err?`<div class="err">${ui.err}</div>`:''}
-    <div class="footer"><div class="in row"><button class="btn ghost" style="flex:0 0 30%" data-a="go" data-v="list">Back</button>
-      <button class="btn primary" data-a="to-lock">Next</button></div></div>`;
+    ${d.goals.length<MAX_GOALS?`<div class="chips">${Object.entries({weight:'+ Weight',pushups:'+ Push-ups',run:'+ 5 km run time',rower:'+ Rower 500 cal time',custom:'+ Custom goal'}).map(([k,l])=>`<button class="chip" data-a="goal-t" data-v="${k}">${l}</button>`).join('')}</div>`:''}
+    ${err()}
+    ${footer('list','to-trackers','Next')}`;
+}
+function vTrackers(){
+  const d = ui.draft;
+  return `${steps(3)}<div class="eyebrow">Step 3 · Daily trackers</div><h2 style="margin-top:6px">Anything to count each day?</h2>
+    <p class="sub">Optional. Enter a number each day, like calories or water, and see your weekly average. <b>Private to you.</b> Never shown to your crew or ranked. You can change these later.</p>
+    ${d.trackers.map((t,i)=>`<div class="card gcard">
+      <div class="hd"><h3>${esc(t.label || 'Tracker ' + (i+1))}</h3><button class="x" data-a="rm-tracker-d" data-v="${i}" aria-label="Remove tracker">×</button></div>
+      <div class="grid2">
+        <div class="field"><label>What</label><input class="input" data-t="${i}" data-f="label" value="${esc(t.label)}" placeholder="e.g. Calories"></div>
+        <div class="field"><label>Unit</label><input class="input" data-t="${i}" data-f="unit" value="${esc(t.unit)}" placeholder="kcal"></div>
+      </div>
+      <div class="field"><label>Daily target (optional)</label><input class="input" data-t="${i}" data-f="target" inputmode="decimal" value="${esc(t.target)}" placeholder="e.g. 2800"></div>
+    </div>`).join('')}
+    ${d.trackers.length<MAX_TRACKERS?`<div class="chips">${Object.entries({calories:'+ Calories',water:'+ Water',steps:'+ Steps',protein:'+ Protein',custom:'+ Custom'}).filter(([k])=>k==='custom'||!d.trackers.some(t=>t.label===TRACKER_TEMPLATES[k].label)).map(([k,l])=>`<button class="chip" data-a="tracker-t" data-v="${k}">${l}</button>`).join('')}</div>`:''}
+    ${err()}
+    ${footer('goals','to-crew', d.trackers.length ? 'Next' : 'Skip')}`;
+}
+function vCrewStep(){
+  const d = ui.draft;
+  return `${steps(4)}<div class="eyebrow">Step 4 · Your crew</div><h2 style="margin-top:6px">Who's in it with you?</h2>
+    <p class="sub">Crews see each other's daily scores and streaks, cheer each other on, and take on other crews. You can join more crews later.</p>
+    <div class="optc ${d.crewMode==='join'?'on':''}"><button data-a="crewmode" data-v="join"><b>Join a crew</b><small>Got a code or invite link from a mate?</small></button>
+      ${d.crewMode==='join'?`<input class="input" data-d="joinCode" value="${esc(d.joinCode||'')}" placeholder="Crew code, e.g. LI50-7KQ2M" autocapitalize="characters" aria-label="Crew code">`:''}</div>
+    <div class="optc ${d.crewMode==='start'?'on':''}"><button data-a="crewmode" data-v="start"><b>Start a crew</b><small>Name it, then invite your mates with a code.</small></button>
+      ${d.crewMode==='start'?`<input class="input" data-d="crewName" value="${esc(d.crewName||'')}" placeholder="Crew name, e.g. Gym Rats" maxlength="30" aria-label="Crew name">`:''}</div>
+    <div class="optc ${d.crewMode==='none'?'on':''}"><button data-a="crewmode" data-v="none"><b>Not yet</b><small>Go solo for now. Join or start one any time.</small></button></div>
+    ${err()}
+    ${footer('trackers','to-lock','Next')}`;
 }
 function vLock(){
   const d = ui.draft, end = addDays(addDays(today(),d.startIn), LEN-1);
-  return `${steps(3)}<div class="eyebrow">Step 3 · Lock it in</div><h2 style="margin-top:6px">Last look, ${esc(d.name)}.</h2>
-    <p class="sub">Once you lock in, this list and these goals can't change for 50 days.</p>
+  const crewLine = d.crewMode==='join' ? `Joining <b>${esc(d.joinName || d.joinCode)}</b>` : d.crewMode==='start' ? `Starting <b>${esc(d.crewName)}</b>` : 'No crew yet';
+  return `${steps(5)}<div class="eyebrow">Step 5 · Lock it in</div><h2 style="margin-top:6px">Last look, ${esc(d.username)}.</h2>
+    <p class="sub">Once you lock in, your list and goals can't change for 50 days.</p>
     <div class="row" style="margin-bottom:14px"><button class="opt ${d.startIn===0?'on':''}" data-a="start" data-v="0">Start today</button><button class="opt ${d.startIn===1?'on':''}" data-a="start" data-v="1">Start tomorrow</button></div>
     <div class="card"><div class="eyebrow" style="margin-bottom:6px">Daily list</div>
       <ul class="sumlist">${d.items.map(i=>`<li><span>${esc(i.label)}</span>${pips(i.weight)}</li>`).join('')}</ul></div>
     ${d.goals.length?`<div class="card"><div class="eyebrow" style="margin-bottom:6px">Goals</div>
-      <ul class="sumlist">${d.goals.map(g=>`<li><span>${esc(g.label)}</span><span class="mute">${esc(g.start)} → ${esc(g.target)} ${esc(g.unit)}</span></li>`).join('')}</ul></div>`:''}
+      <ul class="sumlist">${d.goals.map(g=>`<li><span>${esc(g.label)}</span><span class="mute">${esc(g.start)} → ${esc(g.target)} ${g.kind==='time'?'':esc(g.unit)}</span></li>`).join('')}</ul></div>`:''}
+    ${d.trackers.length?`<div class="card"><div class="eyebrow" style="margin-bottom:6px">Private trackers</div>
+      <ul class="sumlist">${d.trackers.map(t=>`<li><span>${esc(t.label)}</span><span class="mute">${t.target?esc(t.target)+' '+esc(t.unit)+' a day':''}</span></li>`).join('')}</ul></div>`:''}
+    <div class="card"><div class="eyebrow" style="margin-bottom:6px">Crew</div><p style="font-size:15px">${crewLine}</p></div>
     <p class="mute" style="font-size:14px;text-align:center;margin-bottom:10px">Finish line: <b style="color:var(--text)">${fmt(end)}</b></p>
-    <div class="footer"><div class="in row"><button class="btn ghost" style="flex:0 0 30%" data-a="go" data-v="goals">Back</button>
-      <button class="btn primary" data-a="lock">🔒 Lock in for 50 days</button></div></div>`;
+    ${footer('crew','lock','🔒 Lock in for 50 days')}`;
 }
 function vLogin(){
-  const c = ui.loginCrew, err = ui.err ? `<div class="err">${ui.err}</div>` : '';
-  if (!c) return `<div class="eyebrow" style="margin-top:8px">Welcome back</div><h2 style="margin:6px 0 18px">What's your crew code?</h2>
-    <div class="field"><label>Crew code</label><input class="input" id="l-code" value="${esc(ui.jf.code||'')}" autocapitalize="characters"></div>
-    ${err}<button class="btn primary" data-a="find-crew">Next</button>
-    <button class="btn ghost" data-a="go" data-v="welcome">Back</button>`;
-  return `<div class="eyebrow" style="margin-top:8px">${esc(c.name)}</div><h2 style="margin:6px 0 18px">Who are you?</h2>
-    ${c.members.length ? '' : '<p class="mute">Nobody has joined this crew yet.</p>'}
-    ${c.members.map(u=>`<button class="member ${ui.pick===u.id?'on':''}" data-a="pick" data-v="${u.id}">${avatar(u)}${esc(u.name)}<span class="mute" style="margin-left:auto;font-size:13px">${dayNum(u)<1?'Starts soon':dayNum(u)>LEN?'Finished':'Day '+dayNum(u)}</span></button>`).join('')}
-    ${ui.pick?`<div class="field" style="margin-top:14px"><label>PIN</label><input class="input" id="l-pin" inputmode="numeric" maxlength="4" type="password" placeholder="••••" autofocus></div>`:''}
-    ${err}
-    <button class="btn primary" data-a="login" ${ui.pick?'':'disabled'} style="margin-top:6px">Log in</button>
-    <button class="btn ghost" data-a="go" data-v="login">Back</button>`;
+  return `<div class="eyebrow" style="margin-top:8px">Welcome back</div><h2 style="margin:6px 0 18px">Log in</h2>
+    <div class="field"><label>Username</label><input class="input" id="l-name" value="${esc(ui.jf.login||'')}" autocapitalize="off" autocomplete="username"></div>
+    <div class="field"><label>PIN</label><input class="input" id="l-pin" inputmode="numeric" maxlength="6" type="password" placeholder="••••••" autocomplete="current-password"></div>
+    ${err()}
+    <button class="btn primary" data-a="login">Log in</button>
+    <button class="btn ghost" data-a="go" data-v="welcome">Back</button>
+    <p class="demo-note">Joined before usernames? Your username is your old name, with any spaces swapped for _</p>`;
 }
 
 /* ---------- main tabs ---------- */
+function streakCard(u){
+  const t = today(), s = streak(u), b = Math.max(bestStreak(u), s), done = score(u,t) === 100, n = dayNum(u);
+  let cls = '', sub;
+  if (n < 1) sub = 'Starts when your 50 days do.';
+  else if (done) { cls = 'lit'; sub = 'Locked in today. Keep it going tomorrow.'; }
+  else if (s > 0 && n <= LEN) { cls = 'risk'; sub = `Finish today's list to make it ${s+1}.`; }
+  else sub = n > LEN ? 'Challenge complete.' : 'Hit 100% today to start a streak.';
+  return `<div class="streak ${cls}"><span class="fl" aria-hidden="true">🔥</span>
+    <div><div class="row" style="gap:8px;align-items:baseline"><span class="num">${s}</span><span class="lab">day streak</span></div><div class="sub">${sub}</div></div>
+    <div class="best"><b>${b}</b><small>Best</small></div></div>`;
+}
+function trackCard(){
+  const t = today();
+  const goals = ME.goals, trk = ME.trackers;
+  if (!goals.length && !trk.length) return '';
+  return `<div class="card"><div class="hd"><h3>Track</h3><button class="tlink" data-a="tab" data-v="me">See progress</button></div>
+    ${goals.map(g => { const todayLog = g.logs.find(l => l.date === t);
+      return `<div class="trk"><div class="tl"><b>${esc(g.label)}</b><small>Now ${gval(g, cur(g))} · target ${gval(g, g.target)}${bestOf(g)!=null?` · PB ${gval(g, bestOf(g))}`:''}</small></div>
+        <button class="sm" data-a="log-modal" data-v="${g.id}">${todayLog ? 'Update' : 'Log'}</button></div>`; }).join('')}
+    ${trk.map(tr => { const v = tr.logs[t];
+      return `<div class="trk"><div class="tl"><b>${esc(tr.label)} <span class="mute" style="font-weight:500;font-size:12px">🔒 private</span></b><small>${tr.target ? `Target ${num(tr.target)} ${esc(tr.unit)}` : 'Today'}${v!=null && tr.target ? ` · ${Math.round(v/tr.target*100)}%` : ''}</small></div>
+        <input id="tk-${tr.id}" inputmode="decimal" value="${v!=null?v:''}" placeholder="${esc(tr.unit || '0')}" aria-label="${esc(tr.label)} today"><button class="sm" data-a="log-tracker" data-v="${tr.id}">Save</button></div>`; }).join('')}
+  </div>`;
+}
 function tToday(u){
   const t = today(), n = dayNum(u);
   if (n < 1) return `${a2hsBanner()}<div class="card center" style="padding:28px 18px"><div class="eyebrow">Locked in 🔒</div><h2 style="margin:8px 0">Day 1 starts tomorrow</h2>
     <p class="mute" style="margin-bottom:14px">Rest up. Here's what you signed up for.</p>
-    <ul class="sumlist" style="text-align:left">${u.items.map(i=>`<li><span>${esc(i.label)}</span>${pips(i.weight)}</li>`).join('')}</ul></div>`;
-  if (n > LEN) return tFinished(u);
+    <ul class="sumlist" style="text-align:left">${u.items.map(i=>`<li><span>${esc(i.label)}</span>${pips(i.weight)}</li>`).join('')}</ul></div>${trackCard()}`;
+  if (n > LEN) return tFinished(u) + trackCard();
   const sc = score(u,t), done = u.days[t] || [], q = quoteFor(n);
   return `${a2hsBanner()}<div class="dayhead"><div><div class="eyebrow">Day</div><div class="daynum">${n}<span>/${LEN}</span></div></div>${ring(sc)}</div>
     <div class="track"><i style="width:${n/LEN*100}%"></i></div>
-    <div class="pills"><span class="pill">🔥 ${streak(u)} day streak</span><span class="pill">${LEN-n} days to go</span><span class="pill">Avg ${avg(u)}%</span></div>
+    ${streakCard(u)}
+    <div class="pills"><span class="pill">${LEN-n} days to go</span><span class="pill">Avg ${avg(u)}%</span><span class="pill">${fullDays(u)} perfect days</span></div>
     <div class="card quote">“${esc(q.t)}”<cite>— ${esc(q.a)}</cite></div>
     ${u.items.map(it=>`<button class="item ${done.includes(it.id)?'on':''}" data-a="tick" data-v="${it.id}"><span class="box"></span><span class="lbl">${esc(it.label)}</span>${pips(it.weight)}</button>`).join('')}
     ${sc===100?`<div class="done-banner">Day ${n} complete. That's how it's done. 💯</div>`:''}
-    <p class="locked">🔒 List locked until ${fmt(addDays(u.startDate,LEN-1))}</p>`;
+    <p class="locked" style="margin-bottom:14px">🔒 List locked until ${fmt(addDays(u.startDate,LEN-1))}</p>
+    ${trackCard()}`;
 }
 function tFinished(u){
   return `<div class="card center" style="padding:30px 18px"><div class="eyebrow">Challenge complete</div><div class="logo" style="font-size:40px;margin:10px 0">50 DAYS.<br><span style="font-size:60px;display:inline">DONE.</span></div>
-    <div class="stats" style="margin-top:18px"><div class="stat"><b>${avg(u)}%</b><small>avg score</small></div><div class="stat"><b>${fullDays(u)}</b><small>perfect days</small></div><div class="stat"><b>${bestStreak(u)}</b><small>best streak</small></div><div class="stat"><b>${u.goals.filter(g=>pct(g)>=100).length}/${u.goals.length}</b><small>goals hit</small></div></div>
-    ${u.goals.map(g=>`<div class="gbar" style="text-align:left"><div class="t"><span>${esc(g.label)}</span><span>${g.start} → ${cur(g)} ${esc(g.unit)}</span></div><div class="bar"><i style="width:${clamp(pct(g))}%"></i></div></div>`).join('')}
+    <div class="stats" style="margin-top:18px"><div class="stat"><b>${avg(u)}%</b><small>avg score</small></div><div class="stat"><b>${fullDays(u)}</b><small>perfect days</small></div><div class="stat"><b>${bestStreak(u)}</b><small>best streak</small></div><div class="stat"><b>${ME.goals.filter(g=>pct(g)>=100).length}/${ME.goals.length}</b><small>goals hit</small></div></div>
+    ${ME.goals.map(g=>`<div class="gbar" style="text-align:left"><div class="t"><span>${esc(g.label)}</span><span>${gval(g,g.start)} → ${gval(g,cur(g))}</span></div><div class="bar"><i style="width:${clamp(pct(g))}%"></i></div></div>`).join('')}
   </div>`;
 }
-function tCrew(me){
-  const all = Object.values(S.users), active = all.filter(u=>dayNum(u)>=1), soon = all.filter(u=>dayNum(u)<1);
-  const rows = active.map(u=>({u, s:avg(u, ui.board==='week'?7:0), st:streak(u)})).sort((a,b)=>b.s-a.s||b.st-a.st);
-  const shared = all.flatMap(u=>u.goals.filter(g=>g.shared).map(g=>({u,g})));
-  const feed = [...S.feed].sort((a,b)=>b.ts-a.ts).slice(0,25);
-  return `<div class="card lb"><div class="hd"><h3>Leaderboard</h3>
-      <div class="seg"><button class="${ui.board==='week'?'on':''}" data-a="board" data-v="week">Last 7 days</button><button class="${ui.board==='overall'?'on':''}" data-a="board" data-v="overall">Overall</button></div></div>
-    ${rows.map((r,i)=>`<div class="lrow ${i===0?'first':''}"><span class="rank">${i+1}</span>${avatar(r.u)}<div class="who"><b class="${r.u.id===me.id?'me':''}">${esc(r.u.name)}${r.u.id===me.id?' (you)':''}</b><small>${dayNum(r.u)>LEN?'Finished':'Day '+dayNum(r.u)} · 🔥 ${r.st}</small></div><span class="sc">${r.s}%</span></div>`).join('')}
+function crewForms(){
+  const f = ui.crewForm || 'join';
+  return `<div class="card"><div class="seg" style="display:inline-flex;margin-bottom:12px"><button class="${f==='join'?'on':''}" data-a="crewform" data-v="join">Join a crew</button><button class="${f==='start'?'on':''}" data-a="crewform" data-v="start">Start a crew</button></div>
+    ${f==='join'
+      ? `<p class="mute" style="font-size:14px;margin-bottom:8px">Enter the code a mate sent you.</p><div class="addrow" style="margin:0"><input class="input" id="cf-code" placeholder="LI50-XXXXX" autocapitalize="characters"><button data-a="join-crew">Join</button></div>`
+      : `<p class="mute" style="font-size:14px;margin-bottom:8px">Name your crew. You'll get a code and invite link to send your mates.</p><div class="addrow" style="margin:0"><input class="input" id="cf-name" placeholder="e.g. Gym Rats" maxlength="30"><button data-a="create-crew">Start</button></div>`}
+    ${err()}</div>`;
+}
+function tCrew(){
+  if (!ME.crews.length) return `<div class="card center" style="padding:24px 18px"><div style="display:flex;justify-content:center;margin-bottom:10px">${badge(64)}</div><h2 style="font-size:22px">You're not in a crew yet</h2>
+    <p class="mute" style="margin-top:6px">Crews see each other's scores and streaks, and take on other crews on the Ranks board.</p></div>${crewForms()}`;
+  const chips = `<div class="chiprow">${ME.crews.map(c=>`<button class="cchip ${c.id===ui.crewId?'on':''}" data-a="switch-crew" data-v="${c.id}">${esc(c.name)}</button>`).join('')}<button class="cchip add ${ui.crewId==='__add'?'on':''}" data-a="switch-crew" data-v="__add">+ Join / start</button></div>`;
+  if (ui.crewId === '__add' || !CREW) return chips + crewForms();
+  const me = ME, all = CREW.members, active = all.filter(u=>dayNum(u)>=1), soon = all.filter(u=>dayNum(u)<1);
+  const key = ui.lb;
+  const rows = active.map(u=>({u, s: key==='streak' ? streak(u) : avg(u, key==='week'?7:0), st:streak(u), a7:avg(u,7)}))
+    .sort((a,b)=> b.s-a.s || b.st-a.st || b.a7-a.a7);
+  const shared = all.flatMap(u=>(u.goals||[]).filter(g=>g.shared).map(g=>({u,g})));
+  const feed = [...CREW.feed].sort((a,b)=>b.ts-a.ts).slice(0,25);
+  const isCaptain = CREW.captainId === me.id;
+  return `${chips}
+    <div class="crewhead"><div><h2>${esc(CREW.name)}</h2><div class="mute" style="font-size:13px">${all.length} ${all.length===1?'member':'members'}${isCaptain?' · You\'re captain':''}</div></div>${crest(CREW.name)}</div>
+    <div class="card lb"><div class="hd"><h3>Leaderboard</h3>
+      <div class="seg">${[['week','7 days'],['overall','Overall'],['streak','Streak']].map(([k,l])=>`<button class="${key===k?'on':''}" data-a="lb" data-v="${k}">${l}</button>`).join('')}</div></div>
+    ${rows.length ? rows.map((r,i)=>`<div class="lrow ${i===0?'first':''}"><span class="rank">${i+1}</span>${avatar(r.u)}<div class="who"><b class="${r.u.id===me.id?'me':''}">${esc(r.u.name)}${r.u.id===me.id?' (you)':''}</b><small>${dayNum(r.u)>LEN?'Finished':'Day '+dayNum(r.u)} · 🔥 ${r.st}</small></div><span class="sc">${key==='streak' ? r.s + '<span style="font-size:13px"> 🔥</span>' : r.s + '%'}</span></div>`).join('') : '<p class="mute">Nobody has started yet.</p>'}
     ${soon.length?`<p class="mute" style="font-size:13px;margin-top:8px">Starting soon: ${soon.map(u=>esc(u.name)).join(', ')}</p>`:''}
-    <p class="mute" style="font-size:12px;margin-top:10px">Score = average % of your own list completed each day.</p></div>
+    <p class="mute" style="font-size:12px;margin-top:10px">${key==='streak' ? 'Days in a row at 100%.' : 'Score = average % of your own list completed each day.'}</p></div>
     ${shared.length?`<div class="card"><h3 style="margin-bottom:4px">Goal progress</h3>
       ${shared.map(({u,g})=>`<div class="gbar"><div class="t"><span><b>${esc(u.name)}</b> <span class="mute">· ${esc(g.label)}</span></span><span>${pct(g)}%</span></div><div class="bar"><i style="width:${clamp(pct(g))}%"></i></div></div>`).join('')}</div>`:''}
     <div class="card"><div class="compose"><textarea id="post-text" placeholder="Shout out the crew, or tell them how today went…" maxlength="280"></textarea><div class="row"><button class="sbtn" data-a="post">Post</button></div></div></div>
-    <div class="card" style="padding-top:4px;padding-bottom:4px">${feed.map(p=>{ const u = S.users[p.userId]; if (!u) return ''; const liked = p.likes.includes(me.id);
+    <div class="card" style="padding-top:4px;padding-bottom:4px">${feed.length ? feed.map(p=>{ const u = CREW.users[p.userId]; if (!u) return ''; const liked = p.likes.includes(me.id);
       return `<div class="post">${avatar(u)}<div class="pbody"><div class="phead"><b>${esc(u.name)}</b><span class="mute">${ago(p.ts)}</span></div><p>${esc(p.text)}</p>
         <div class="pact"><button class="react ${liked?'on':''}" data-a="like" data-v="${p.id}">👍 ${p.likes.length||''}</button><span class="mute">💬 ${p.comments.length}</span></div>
-        ${p.comments.map(c=>{ const cu = S.users[c.userId]; return `<div class="cm"><b>${esc(cu?cu.name:'?')}</b> ${esc(c.text)}</div>`; }).join('')}
-        <div class="cbox"><input id="c-${p.id}" placeholder="Add a comment…" maxlength="200"><button data-a="comment" data-v="${p.id}">Send</button></div></div></div>`; }).join('')}</div>
-    <div class="card"><h3>Invite mates</h3><p class="mute" style="font-size:14px;margin-top:4px">Send them the link and this crew code.</p>
-      <div class="row" style="justify-content:space-between;margin-top:10px"><span class="big" style="font-size:22px">${esc(S.group.code)}</span><button class="sbtn" data-a="copy-code">Copy invite</button></div></div>`;
+        ${p.comments.map(c=>{ const cu = CREW.users[c.userId]; return `<div class="cm"><b>${esc(cu?cu.name:'Ex-member')}</b> ${esc(c.text)}</div>`; }).join('')}
+        <div class="cbox"><input id="c-${p.id}" placeholder="Add a comment…" maxlength="200"><button data-a="comment" data-v="${p.id}">Send</button></div></div></div>`; }).join('') : '<p class="mute" style="padding:12px 0">No posts yet.</p>'}</div>
+    <div class="card invite"><h3>Invite mates</h3><p class="mute" style="font-size:14px;margin-top:4px">Send the invite link, or give them the code.</p>
+      <div class="row" style="justify-content:space-between;margin-top:10px"><span class="big" style="font-size:22px">${esc(CREW.code)}</span><button class="sbtn" data-a="copy-invite">Copy invite</button></div></div>
+    ${isCaptain ? `<div class="card"><h3>Captain tools</h3>
+      <button class="linkbtn" data-a="rename-crew">Rename crew</button>
+      <button class="linkbtn" data-a="new-code">Get a new crew code <span class="mute" style="font-weight:400">(old one stops working)</span></button>
+      ${all.filter(u=>u.id!==me.id).length ? `<div class="eyebrow" style="margin:10px 0 2px">Members</div>${all.filter(u=>u.id!==me.id).map(u=>`<div class="memrow">${avatar(u,28)}<span>${esc(u.name)}</span><button class="tlink danger" data-a="remove-member" data-v="${u.id}">Remove</button></div>`).join('')}` : ''}
+    </div>` : ''}
+    <button class="linkbtn danger" style="text-align:center" data-a="leave-crew">Leave ${esc(CREW.name)}</button>`;
+}
+function tRanks(){
+  if (!BOARD) return `<p class="mute" style="text-align:center;padding:40px 0">Loading the board…</p>`;
+  const key = ui.board === 'overall' ? 'overall' : 'week';
+  const ranked = BOARD.filter(b=>b.ranked).sort((a,b)=>(+b[key]||0)-(+a[key]||0) || b.active-a.active);
+  const mineUnranked = BOARD.filter(b=>!b.ranked && b.mine);
+  return `<div class="eyebrow">Crew vs crew</div><h2 style="margin:4px 0 14px">The Ranks</h2>
+    <div class="card"><div class="hd"><h3>All crews</h3>
+      <div class="seg"><button class="${key==='week'?'on':''}" data-a="board" data-v="week">Last 7 days</button><button class="${key==='overall'?'on':''}" data-a="board" data-v="overall">Overall</button></div></div>
+      ${ranked.length ? ranked.map((b,i)=>`<div class="rk ${i<3?'top':''} ${b.mine?'mine':''}"><span class="rank">${i+1}</span>${crest(b.name)}<div class="cn"><b>${esc(b.name)}${b.mine?' (yours)':''}</b><small>${b.active} active</small></div><span class="sc">${b[key]!=null?Math.round(b[key]):0}%</span></div>`).join('')
+        : '<p class="mute" style="padding:8px 0">No crews ranked yet. A crew needs 3 people in their 50 days to make the board.</p>'}
+    </div>
+    ${mineUnranked.length ? `<div class="card"><h3>Not ranked yet</h3>${mineUnranked.map(b=>`<div class="rk mine">${crest(b.name)}<div class="cn"><b>${esc(b.name)}</b><small>${b.active} of 3 active members needed</small></div></div>`).join('')}
+      <p class="mute" style="font-size:13px;margin-top:6px">Invite more mates from the Crew tab to get on the board.</p></div>` : ''}
+    <p class="mute" style="font-size:12px;text-align:center;margin-top:4px">Crew score = average of its members' daily scores. Only crew names and scores are shown here, never members.</p>`;
 }
 function tMe(u){
   const t = today(), n = dayNum(u);
   const cells = Array.from({length:LEN},(_,i)=>{ const d = addDays(u.startDate,i); let c;
     if (d > t) c = 'fut'; else { const s = score(u,d); c = d===t && s===0 ? '' : s===0 ? 'z' : s<50 ? 'l1' : s<100 ? 'l2' : 'l3'; }
     return `<i class="${c} ${d===t?'today':''}" title="Day ${i+1} · ${fmt(d)}"></i>`; }).join('');
-  return `<div class="row" style="margin-bottom:16px;gap:14px"><label class="avedit" aria-label="Change profile photo">${avatar(u,64)}<span class="cam"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></span><input type="file" accept="image/*" id="photo-in" hidden></label><div><h2 style="font-size:24px">${esc(u.name)}</h2>
+  const last14 = Array.from({length:14},(_,i)=>addDays(t, i-13));
+  return `<div class="row" style="margin-bottom:16px;gap:14px"><label class="avedit" aria-label="Change profile photo">${avatar(u,64)}<span class="cam"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></span><input type="file" accept="image/*" id="photo-in" hidden></label><div><h2 style="font-size:24px">${esc(u.username)}</h2>
       <div class="mute" style="font-size:13px">${fmt(u.startDate)} → ${fmt(addDays(u.startDate,LEN-1))}</div>
       <div style="font-size:12px;margin-top:4px" class="mute">${u.photo?'Tap photo to change · <button class="tlink" data-a="rm-photo">Remove</button>':'Tap to add a photo'}</div></div></div>
     <div class="stats"><div class="stat"><b>${avg(u)}%</b><small>avg</small></div><div class="stat"><b>${fullDays(u)}</b><small>perfect</small></div><div class="stat"><b>${streak(u)}</b><small>streak</small></div><div class="stat"><b>${bestStreak(u)}</b><small>best</small></div></div>
     <div class="card"><div class="hd"><h3>50 days</h3><span class="mute" style="font-size:13px">${n<1?'Not started':n>LEN?'Complete':'Day '+n}</span></div>
       <div class="cal">${cells}</div>
       <div class="legend"><span><i style="background:var(--acc)"></i>100%</span><span><i style="background:rgba(200,245,66,.55)"></i>50–99%</span><span><i style="background:rgba(200,245,66,.25)"></i>1–49%</span><span><i style="background:#3A2320"></i>Missed</span></div></div>
-    ${u.goals.map(g=>{ const p = pct(g); return `<div class="card"><div class="hd"><h3>${esc(g.label)}</h3><span class="badge ${g.shared?'on':''}">${g.shared?'% shared':'Private'}</span></div>
-      <div class="row" style="justify-content:space-between;align-items:baseline"><span class="big">${cur(g)} <span class="mute" style="font-size:15px;font-family:Archivo">${esc(g.unit)}</span></span><span class="mute" style="font-size:13px">${g.start} → ${g.target} · <b style="color:var(--text)">${p}%</b></span></div>
+    ${u.goals.map(g=>{ const p = pct(g), best = bestOf(g), hist = [...g.logs].reverse().slice(0,10);
+      return `<div class="card"><div class="hd"><h3>${esc(g.label)}</h3><span class="badge ${g.shared?'on':''}">${g.shared?'% shared':'Private'}</span></div>
+      <div class="row" style="justify-content:space-between;align-items:baseline"><span class="big">${gval(g, cur(g))}</span><span class="mute" style="font-size:13px">${gval(g,g.start)} → ${gval(g,g.target)} · <b style="color:var(--text)">${p}%</b></span></div>
       <div class="bar" style="margin-top:10px"><i style="width:${clamp(p)}%"></i></div>${spark(g)}
-      ${n>=1&&n<=LEN?`<div class="gl"><input class="input" id="gl-${g.id}" inputmode="decimal" placeholder="Today's ${esc(g.unit||'number')}"><button data-a="log" data-v="${g.id}">Log</button></div>`:''}</div>`; }).join('')}
+      ${best!=null?`<p class="mute" style="font-size:13px;margin-top:8px">🏆 Personal best: <b style="color:var(--text)">${gval(g,best)}</b></p>`:''}
+      <div class="gl"><input class="input" id="gl-${g.id}" inputmode="${g.kind==='time'?'text':'decimal'}" placeholder="${g.kind==='time'?'Today\'s time, e.g. 24:38':'Today\'s '+esc(g.unit||'number')}"><button data-a="log" data-v="${g.id}">Log</button></div>
+      ${hist.length?`<ul class="hist">${hist.map(l=>`<li><span>${fmt(l.date)}</span>${l.value===best&&g.logs.length>1?'<span class="pbt">PB</span>':''}<b>${gval(g,l.value)}</b><button class="x" data-a="del-log" data-v="${g.id}|${l.date}" aria-label="Delete ${fmt(l.date)} entry">×</button></li>`).join('')}</ul>`:''}
+      </div>`; }).join('')}
+    ${u.trackers.map(tr=>{ const vals = last14.map(d=>tr.logs[d]), have = vals.filter(v=>v!=null), wk = last14.slice(-7).map(d=>tr.logs[d]).filter(v=>v!=null);
+      const mx = Math.max(...have, tr.target||0, 1);
+      return `<div class="card"><div class="hd"><h3>${esc(tr.label)}</h3><span class="badge">🔒 Private</span></div>
+      <div class="row" style="justify-content:space-between;align-items:baseline"><span class="big">${tr.logs[t]!=null?num(tr.logs[t]):'–'} <span class="mute" style="font-size:15px;font-family:Archivo">${esc(tr.unit)} today</span></span>
+        <span class="mute" style="font-size:13px">7-day avg <b style="color:var(--text)">${wk.length?num(Math.round(wk.reduce((a,b)=>a+b,0)/wk.length*10)/10):'–'}</b>${tr.target?` · target ${num(tr.target)}`:''}</span></div>
+      <div class="bars" aria-label="Last 14 days">${tr.target?`<span class="tline" style="bottom:${tr.target/mx*100}%"></span>`:''}${vals.map((v,i)=>`<i class="${v==null?'':(tr.target&&v>=tr.target?'hit':'v')}" style="height:${v==null?2:Math.max(4, v/mx*100)}%" title="${fmt(last14[i])}: ${v!=null?num(v):'no entry'}"></i>`).join('')}</div>
+      <div class="gl"><input class="input" id="tk-${tr.id}" inputmode="decimal" value="${tr.logs[t]!=null?tr.logs[t]:''}" placeholder="Today's ${esc(tr.unit||'number')}"><button data-a="log-tracker" data-v="${tr.id}">Save</button></div>
+      <button class="tlink" style="margin-top:10px" data-a="rm-tracker" data-v="${tr.id}">Remove tracker</button></div>`; }).join('')}
+    ${u.trackers.length < MAX_TRACKERS ? `<div class="card"><h3>Add a private tracker</h3><p class="mute" style="font-size:13px;margin:4px 0 10px">A number to log each day. Only you see it.</p>
+      <div class="chips" style="margin:0">${Object.entries({calories:'+ Calories',water:'+ Water',steps:'+ Steps',protein:'+ Protein',custom:'+ Custom'}).filter(([k])=>k==='custom'||!u.trackers.some(t=>t.label===TRACKER_TEMPLATES[k].label)).map(([k,l])=>`<button class="chip" data-a="add-tracker" data-v="${k}">${l}</button>`).join('')}</div></div>` : ''}
     <div class="card"><div class="hd"><h3>My list</h3><span class="badge">🔒 Locked</span></div>
       <ul class="sumlist">${u.items.map(i=>`<li><span>${esc(i.label)}</span>${pips(i.weight)}</li>`).join('')}</ul></div>
+    <div class="card"><h3 style="margin-bottom:4px">My crews</h3>${ME.crews.length ? ME.crews.map(c=>`<div class="memrow">${crest(c.name)}<span>${esc(c.name)}<br><small class="mute" style="font-weight:400">${c.members} members${c.captain?' · captain':''}</small></span><button class="tlink" data-a="goto-crew" data-v="${c.id}">Open</button></div>`).join('') : '<p class="mute" style="font-size:14px">No crews yet.</p>'}
+      <button class="linkbtn" data-a="goto-crew" data-v="__add">+ Join or start a crew</button></div>
     <div class="card">${isStandalone()?'':'<button class="linkbtn" data-a="a2hs">📲 Add to home screen</button>'}<button class="linkbtn" data-a="logout">Log out</button></div>
     <p class="built" style="text-align:center;margin:8px 0 0">LOCKED IN 50 · BUILT BY CARTER</p>`;
 }
 const ICONS = {
-  today:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg>',
-  crew:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"/><circle cx="17" cy="9" r="2.5"/><path d="M16.5 14.5c2.4.2 4.3 2 5 5"/></svg>',
-  me:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>'
+  today:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg>',
+  crew:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"/><circle cx="17" cy="9" r="2.5"/><path d="M16.5 14.5c2.4.2 4.3 2 5 5"/></svg>',
+  ranks:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4"/></svg>',
+  me:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>'
 };
-function vMain(u){
-  const n = dayNum(u), body = ui.tab==='crew' ? tCrew(u) : ui.tab==='me' ? tMe(u) : tToday(u);
-  return `<div class="top"><div class="crew row" style="gap:9px">${badge(30)}<span>LOCKED IN <span>50</span></span></div><div class="row" style="gap:8px"><span class="mute" style="font-size:13px">${n<1?'Starts tomorrow':n>LEN?'Complete':'Day '+n}</span>${avatar(u)}</div></div>
+function vMain(){
+  const u = ME, n = dayNum(u), body = ui.tab==='crew' ? tCrew() : ui.tab==='ranks' ? tRanks() : ui.tab==='me' ? tMe(u) : tToday(u);
+  return `<div class="top"><div class="crew row" style="gap:9px">${badge(30)}<span>LOCKED IN <span>50</span></span></div><div class="row" style="gap:8px"><span class="mute" style="font-size:13px">${n<1?'Starts tomorrow':n>LEN?'Complete':'Day '+n} · 🔥${streak(u)}</span>${avatar(u)}</div></div>
     ${body}
-    <nav><div class="in">${[['today','Today'],['crew','Crew'],['me','Progress']].map(([k,l])=>`<button class="${ui.tab===k?'on':''}" data-a="tab" data-v="${k}">${ICONS[k]}${l}</button>`).join('')}</div></nav>`;
+    <nav><div class="in">${[['today','Today'],['crew','Crew'],['ranks','Ranks'],['me','Progress']].map(([k,l])=>`<button class="${ui.tab===k?'on':''}" data-a="tab" data-v="${k}">${ICONS[k]}${l}</button>`).join('')}</div></nav>`;
 }
 
 /* ---------- render ---------- */
 const $app = document.getElementById('app');
 function render(){
-  if (ui.loading){ $app.innerHTML = `<div class="welcome" style="align-items:center">${badge(96, true)}<p class="mute" style="margin-top:18px">Loading your crew…</p></div>`; return; }
-  const me = S && S.me && S.users[S.me];
-  if (me) $app.innerHTML = vMain(me);
-  else $app.innerHTML = ({welcome:vWelcome, join:vJoin, list:vList, goals:vGoals, lock:vLock, login:vLogin}[ui.view] || vWelcome)();
+  if (ui.loading){ $app.innerHTML = `<div class="welcome" style="align-items:center">${badge(96, true)}<p class="mute" style="margin-top:18px">Loading…</p></div>`; return; }
+  if (ME) $app.innerHTML = vMain();
+  else $app.innerHTML = ({welcome:vWelcome, account:vAccount, list:vList, goals:vGoals, trackers:vTrackers, crew:vCrewStep, lock:vLock, login:vLogin}[ui.view] || vWelcome)();
 }
 const val = id => (document.getElementById(id)?.value || '').trim();
-function toast(t){ const el = document.getElementById('toast'); el.textContent = t; el.classList.add('show'); clearTimeout(toast.h); toast.h = setTimeout(()=>el.classList.remove('show'), 2200); }
+function toast(t){ const el = document.getElementById('toast'); el.textContent = t; el.classList.add('show'); clearTimeout(toast.h); toast.h = setTimeout(()=>el.classList.remove('show'), 2400); }
 function modal(title, body, ok, fn, solo){
   const m = document.getElementById('modal');
   m.innerHTML = `<div class="mbox"><h3 style="font-size:19px">${title}</h3><div class="mbody">${body}</div><div class="mrow">${solo?'':'<button class="btn ghost" data-m="x">Cancel</button>'}<button class="btn primary" data-m="ok">${ok}</button></div></div>`;
   m.classList.add('show');
-  m.onclick = e => { const k = e.target.dataset.m; if (k==='ok'){ m.classList.remove('show'); fn(); } else if (k==='x' || e.target===m) m.classList.remove('show'); };
+  const inp = m.querySelector('input'); if (inp) setTimeout(()=>inp.focus(), 50);
+  const close = () => m.classList.remove('show');
+  const go = async () => { const r = await fn(m); if (r !== false) close(); };
+  m.onclick = e => { const k = e.target.dataset.m; if (k==='ok') go(); else if (k==='x' || e.target===m) close(); };
+  m.onkeydown = e => { if (e.key === 'Enter' && e.target.tagName === 'INPUT') { e.preventDefault(); go(); } };
+}
+async function afterLogin(){
+  ui.loading = true; render();
+  await refresh();
+  ui.tab = 'today'; render(); scrollTo(0,0);
+  if (ui.pendingJoin) offerPendingJoin();
+}
+async function offerPendingJoin(){
+  const pj = ui.pendingJoin; ui.pendingJoin = null; if (!pj || !ME) return;
+  const existing = ME.crews.find(c => c.code === pj.code);
+  if (existing){ ui.crewId = existing.id; ls.set(CREWKEY, existing.id); ui.tab = 'crew'; await refresh(); render(); return; }
+  modal(`Join ${esc(pj.name || 'this crew')}?`, `You've been invited to join <b>${esc(pj.name || pj.code)}</b>. Your list and score will count in this crew too.`, 'Join crew', async () => {
+    try { const r = await rpc('join_crew', { p_token: tok(), p_code: pj.code }); ui.crewId = r.id; ls.set(CREWKEY, r.id); ui.tab = 'crew'; await refresh(); render(); toast(`You're in ${r.name}`); }
+    catch(e){ toast(errMsg(e)); }
+  });
 }
 
 /* ---------- actions ---------- */
 async function act(a, v, el){
-  const me = S && S.me && S.users[S.me], d = ui.draft, tok = session && session.token;
+  const d = ui.draft;
   const busy = (t) => { if (el){ el.disabled = true; if (t) el.textContent = t; } };
   switch(a){
-    case 'go': ui.view = v; ui.err = ''; if (v==='welcome') ui.joinPhoto = null; if (v==='login'){ ui.pick = null; ui.loginCrew = null; } break;
-    case 'join': {
-      const code = val('j-code').toUpperCase(), name = val('j-name'), pin = val('j-pin');
-      ui.jf = { code, name };
-      if (!code) { ui.err = 'Enter your crew code.'; break; }
-      if (!name) { ui.err = 'Add your name.'; break; }
-      if (!/^\d{4}$/.test(pin)) { ui.err = 'PIN needs to be 4 digits.'; break; }
+    case 'go': ui.view = v; ui.err = ''; if (v==='welcome') ui.joinPhoto = null; break;
+    /* --- onboarding --- */
+    case 'account': {
+      const name = val('j-name'), pin = val('j-pin');
+      ui.jf.name = name;
+      if (!/^[A-Za-z0-9_.]{3,20}$/.test(name)) { ui.err = ERR.bad_username; break; }
+      if (!/^\d{6}$/.test(pin)) { ui.err = 'PIN needs to be 6 digits.'; break; }
       busy('Checking…');
       try {
-        const c = await rpc('crew_members', { p_code: code });
-        if (c.members.some(u=>u.name.toLowerCase()===name.toLowerCase())) { ui.err = ERR.name_taken; break; }
-        ui.err = ''; ui.draft = { code, used: c.members.map(m=>m.color), name, pin, photo: ui.joinPhoto || null, items:[], goals:[], startIn:0 }; ui.view = 'list';
+        const r = await rpc('check_username', { p_username: name });
+        if (!r.available) { ui.err = ERR.username_taken; break; }
+        const pj = ui.pendingJoin;
+        ui.err = ''; ui.draft = { username:name, pin, photo: ui.joinPhoto || null, items:[], goals:[], trackers:[], startIn:0,
+          crewMode: pj ? 'join' : 'start', joinCode: pj ? pj.code : '', joinName: pj ? pj.name : '', crewName:'' };
+        ui.view = 'list';
       } catch(e){ ui.err = errMsg(e); }
       break;
     }
@@ -615,11 +852,33 @@ async function act(a, v, el){
     }
     case 'w': d.items[+el.dataset.i].weight = +v; break;
     case 'rm-item': d.items.splice(+v,1); break;
+    case 'to-goals': ui.err = ''; ui.view = 'goals'; break;
     case 'goal-t': if (d.goals.length < MAX_GOALS) d.goals.push({...GOAL_TEMPLATES[v], start:'', target:''}); break;
+    case 'gkind': d.goals[+el.dataset.i].kind = v; break;
     case 'rm-goal': d.goals.splice(+v,1); ui.err=''; break;
+    case 'to-trackers': {
+      for (const g of d.goals){
+        const s = parseGoal(g, g.start), t = parseGoal(g, g.target);
+        if (!String(g.label).trim() || isNaN(s) || isNaN(t) || s === t) { ui.err = g.kind==='time' ? 'Each goal needs a name, plus start and target times (like 28:00 and 24:59) that are different.' : 'Each goal needs a name, plus a start and target number that are different.'; render(); return; }
+      }
+      ui.err = ''; ui.view = 'trackers'; break;
+    }
+    case 'tracker-t': if (d.trackers.length < MAX_TRACKERS) d.trackers.push({...TRACKER_TEMPLATES[v], target:''}); break;
+    case 'rm-tracker-d': d.trackers.splice(+v,1); break;
+    case 'to-crew': {
+      if (d.trackers.some(t => !String(t.label).trim() || (t.target !== '' && isNaN(+t.target)))) { ui.err = 'Each tracker needs a name, and the target needs to be a number.'; break; }
+      ui.err = ''; ui.view = 'crew'; break;
+    }
+    case 'crewmode': if (d.crewMode !== v) { d.crewMode = v; ui.err = ''; } else return; break;
     case 'to-lock': {
-      const bad = d.goals.find(g => !String(g.label).trim() || g.start==='' || g.target==='' || isNaN(+g.start) || isNaN(+g.target) || +g.start===+g.target);
-      if (bad) { ui.err = 'Each goal needs a name, plus a start and target number that are different.'; break; }
+      if (d.crewMode === 'join') {
+        if (!d.joinCode.trim()) { ui.err = 'Enter the crew code, or pick another option.'; break; }
+        busy('Checking…');
+        try { const c = await rpc('crew_preview', { p_code: d.joinCode }); d.joinName = c.name; d.joinCode = c.code; }
+        catch(e){ ui.err = errMsg(e); break; }
+      } else if (d.crewMode === 'start') {
+        if (d.crewName.trim().length < 2) { ui.err = 'Give your crew a name (2–30 characters).'; break; }
+      }
       ui.err = ''; ui.view = 'lock'; break;
     }
     case 'start': d.startIn = +v; break;
@@ -627,117 +886,223 @@ async function act(a, v, el){
       modal('Lock it in?', "No edits to your list or goals for 50 days. Miss a day and it counts as 0%. You in?", "I'm in", async () => {
         toast('Locking in…');
         try {
-          const r = await rpc('join_crew', { p_code:d.code, p_name:d.name, p_pin:d.pin,
-            p_color: COLORS.find(c=>!d.used.includes(c)) || COLORS[0], p_photo:d.photo, p_start:addDays(today(), d.startIn),
+          const r = await rpc('create_account', { p_username:d.username, p_pin:d.pin, p_color: COLORS[Math.floor(Math.random()*COLORS.length)], p_photo:d.photo,
+            p_start:addDays(today(), d.startIn),
             p_items: d.items.map((it,i)=>({id:'i'+i, label:it.label, weight:it.weight})),
-            p_goals: d.goals.map(g=>({label:String(g.label).trim(), unit:String(g.unit).trim(), start:+g.start, target:+g.target, shared:!!g.shared})) });
-          session = { code:d.code, token:r.token }; setSession(session);
-          ui.draft = null; ui.joinPhoto = null; ui.tab = 'today'; ui.loading = true; render();
-          await refresh(); render(); scrollTo(0,0); toast("Locked in. Let's go.");
+            p_goals: d.goals.map(g=>({label:String(g.label).trim(), unit: g.kind==='time' ? '' : String(g.unit).trim(), kind:g.kind, start:parseGoal(g,g.start), target:parseGoal(g,g.target), shared:!!g.shared})),
+            p_trackers: d.trackers.map(t=>({label:String(t.label).trim(), unit:String(t.unit).trim(), target: t.target === '' ? '' : +t.target})),
+            p_join_code: d.crewMode==='join' ? d.joinCode : null, p_new_crew: d.crewMode==='start' ? d.crewName : null });
+          session = { token:r.token }; setSession(session);
+          if (r.crew_id) { ui.crewId = r.crew_id; ls.set(CREWKEY, r.crew_id); }
+          ui.draft = null; ui.joinPhoto = null; ui.pendingJoin = null;
+          await afterLogin(); toast(r.crew_code && d.crewMode==='start' ? `Locked in. Invite your crew with ${r.crew_code}` : "Locked in. Let's go.");
         } catch(e){ toast(errMsg(e)); }
       }); return;
-    case 'find-crew': {
-      const code = val('l-code').toUpperCase(); if (!code) return;
-      ui.jf.code = code; busy('Finding…');
-      try { ui.loginCrew = await rpc('crew_members', { p_code: code }); ui.loginCrew.code = code; ui.pick = null; ui.err = ''; }
-      catch(e){ ui.err = errMsg(e); }
-      break;
-    }
-    case 'pick': ui.pick = v; ui.err = ''; break;
     case 'login': {
-      const pin = val('l-pin'); if (!/^\d{4}$/.test(pin)) { ui.err = 'Enter your 4-digit PIN.'; break; }
+      const name = val('l-name'), pin = val('l-pin'); ui.jf.login = name;
+      if (!name || !/^\d{4,6}$/.test(pin)) { ui.err = 'Enter your username and PIN.'; break; }
       busy('Logging in…');
       try {
-        const r = await rpc('sign_in', { p_code: ui.loginCrew.code, p_member: ui.pick, p_pin: pin });
+        const r = await rpc('sign_in', { p_username: name, p_pin: pin });
         if (r.error) { ui.err = ERR[r.error] || 'Try again.'; break; }
-        session = { code: ui.loginCrew.code, token: r.token }; setSession(session);
-        ui.err = ''; ui.tab = 'today'; ui.loading = true; render(); await refresh();
+        session = { token: r.token }; setSession(session); ui.err = '';
+        await afterLogin(); return;
       } catch(e){ ui.err = errMsg(e); }
       break;
     }
-    case 'tab': ui.tab = v; render(); scrollTo(0,0); return;
+    /* --- main --- */
+    case 'tab':
+      ui.tab = v; ui.err = ''; render(); scrollTo(0,0);
+      if (v === 'ranks') { try { await loadBoard(); } catch(e){ toast(errMsg(e)); } if (ui.tab === 'ranks') render(); }
+      if (v === 'crew') { try { await Promise.all([loadMe(), loadCrew()]); } catch(e){} if (ui.tab === 'crew' && !document.activeElement.closest('input,textarea')) render(); }
+      return;
     case 'tick': {
-      const t = today(), arr = me.days[t] || (me.days[t] = []), i = arr.indexOf(v);
+      const t = today(), arr = ME.days[t] || (ME.days[t] = []), i = arr.indexOf(v);
       i >= 0 ? arr.splice(i,1) : arr.push(v);
-      const done = [...arr], perfect = score(me,t) === 100, n = dayNum(me);
+      if (CREW && CREW.users[ME.id]) CREW.users[ME.id].days[t] = [...arr];
+      const done = [...arr], perfect = score(ME,t) === 100, n = dayNum(ME);
       render();
-      queue(() => rpc('set_day', { p_token:tok, p_day:t, p_done:done, p_perfect:perfect, p_day_num:n })
-        .then(() => { if (perfect) toast('💯 Perfect day. Posted to the crew.'); })
+      if (perfect) toast(`💯 Perfect day. 🔥 ${streak(ME)} day streak`);
+      queue(() => rpc('set_day', { p_token:tok(), p_day:t, p_done:done, p_perfect:perfect, p_day_num:n })
         .catch(async e => { toast(errMsg(e)); await refresh(); render(); }));
       return;
     }
+    case 'log-modal': {
+      const g = ME.goals.find(x=>x.id===v); if (!g) return;
+      const tl = g.logs.find(l=>l.date===today());
+      modal(`Log ${esc(g.label)}`, `<label class="mute" style="font-size:13px" for="m-val">${g.kind==='time'?'Your time today (mm:ss)':'Today\'s number'+(g.unit?' ('+esc(g.unit)+')':'')}</label>
+        <input class="input" id="m-val" inputmode="${g.kind==='time'?'text':'decimal'}" value="${tl?(g.kind==='time'?fmtTime(tl.value):tl.value):''}" placeholder="${g.kind==='time'?'24:38':''}">
+        <p class="tip">Now ${gval(g,cur(g))} · target ${gval(g,g.target)}${bestOf(g)!=null?` · PB ${gval(g,bestOf(g))}`:''}</p>`, 'Save', async (m) => {
+        const x = parseGoal(g, m.querySelector('#m-val').value); if (isNaN(x)) { toast(g.kind==='time'?'Enter a time like 24:38':'Enter a number'); return false; }
+        await logGoal(g, x);
+      }); return;
+    }
+    case 'log': {
+      const g = ME.goals.find(x=>x.id===v); const x = parseGoal(g, val('gl-'+v));
+      if (isNaN(x)) { toast(g.kind==='time'?'Enter a time like 24:38':'Enter a number'); return; }
+      busy(); await logGoal(g, x); break;
+    }
+    case 'del-log': {
+      const [gid, date] = v.split('|');
+      try { await rpc('delete_goal_log', { p_token:tok(), p_goal:gid, p_day:date }); await loadMe(); toast('Entry deleted'); } catch(e){ toast(errMsg(e)); }
+      break;
+    }
+    case 'log-tracker': {
+      const raw = val('tk-'+v), x = raw === '' ? null : parseFloat(raw.replace(/,/g,''));
+      if (raw !== '' && isNaN(x)) { toast('Enter a number'); return; }
+      busy();
+      try { await rpc('log_tracker', { p_token:tok(), p_tracker:v, p_day:today(), p_value:x }); await loadMe(); toast(x==null?'Cleared':'Saved'); } catch(e){ toast(errMsg(e)); }
+      break;
+    }
+    case 'add-tracker': {
+      const tpl = TRACKER_TEMPLATES[v];
+      modal('Add a private tracker', `<label class="mute" style="font-size:13px">What</label><input class="input" id="m-l" value="${esc(tpl.label)}" placeholder="e.g. Calories">
+        <label class="mute" style="font-size:13px;display:block;margin-top:10px">Unit</label><input class="input" id="m-u" value="${esc(tpl.unit)}" placeholder="kcal">
+        <label class="mute" style="font-size:13px;display:block;margin-top:10px">Daily target (optional)</label><input class="input" id="m-t" inputmode="decimal" placeholder="e.g. 2800">`, 'Add', async (m) => {
+        const l = m.querySelector('#m-l').value.trim(), u = m.querySelector('#m-u').value.trim(), t = m.querySelector('#m-t').value.trim();
+        if (!l) { toast('Give it a name'); return false; } if (t && isNaN(+t)) { toast('Target needs to be a number'); return false; }
+        try { await rpc('add_tracker', { p_token:tok(), p_label:l, p_unit:u, p_target: t ? +t : null }); await loadMe(); render(); toast('Tracker added'); } catch(e){ toast(errMsg(e)); }
+      }); return;
+    }
+    case 'rm-tracker':
+      modal('Remove tracker?', 'This deletes the tracker and everything you\'ve logged in it.', 'Remove', async () => {
+        try { await rpc('remove_tracker', { p_token:tok(), p_tracker:v }); await loadMe(); render(); } catch(e){ toast(errMsg(e)); }
+      }); return;
+    case 'lb': ui.lb = v; break;
     case 'board': ui.board = v; break;
+    case 'switch-crew':
+      ui.err = '';
+      if (v === '__add') { ui.crewId = '__add'; break; }
+      ui.crewId = v; ls.set(CREWKEY, v); CREW = null; render();
+      try { await loadCrew(); } catch(e){ toast(errMsg(e)); }
+      break;
+    case 'goto-crew': ui.tab = 'crew'; scrollTo(0,0); return act('switch-crew', v);
+    case 'crewform': ui.crewForm = v; ui.err = ''; break;
+    case 'join-crew': {
+      const code = val('cf-code'); if (!code) return; busy('Joining…');
+      try { const r = await rpc('join_crew', { p_token:tok(), p_code:code }); ui.crewId = r.id; ls.set(CREWKEY, r.id); ui.err = ''; await refresh(); toast(`You're in ${r.name}`); }
+      catch(e){ ui.err = errMsg(e); }
+      break;
+    }
+    case 'create-crew': {
+      const name = val('cf-name'); if (name.length < 2) { ui.err = ERR.bad_crew_name; break; } busy('Starting…');
+      try { const r = await rpc('create_crew', { p_token:tok(), p_name:name }); ui.crewId = r.id; ls.set(CREWKEY, r.id); ui.err = ''; await refresh(); toast(`${r.name} is live. Invite your mates!`); }
+      catch(e){ ui.err = errMsg(e); }
+      break;
+    }
     case 'post': {
       const t = val('post-text'); if (!t) return; busy();
-      try { await rpc('add_post', { p_token:tok, p_text:t }); await refresh(); } catch(e){ toast(errMsg(e)); }
+      try { await rpc('add_post', { p_token:tok(), p_crew:CREW.id, p_text:t }); await loadCrew(); } catch(e){ toast(errMsg(e)); }
       break;
     }
     case 'like': {
-      const p = S.feed.find(p=>p.id===v); const i = p.likes.indexOf(me.id); i>=0 ? p.likes.splice(i,1) : p.likes.push(me.id); render();
-      try { await rpc('toggle_like', { p_token:tok, p_post:v }); } catch(e){ toast(errMsg(e)); await refresh(); }
+      const p = CREW.feed.find(p=>p.id===v); const i = p.likes.indexOf(ME.id); i>=0 ? p.likes.splice(i,1) : p.likes.push(ME.id); render();
+      try { await rpc('toggle_like', { p_token:tok(), p_post:v }); } catch(e){ toast(errMsg(e)); await loadCrew(); }
       break;
     }
     case 'comment': {
       const t = val('c-'+v); if (!t) return; busy();
-      try { await rpc('add_comment', { p_token:tok, p_post:v, p_text:t }); await refresh(); } catch(e){ toast(errMsg(e)); }
+      try { await rpc('add_comment', { p_token:tok(), p_post:v, p_text:t }); await loadCrew(); } catch(e){ toast(errMsg(e)); }
       break;
     }
-    case 'log': {
-      const num = parseFloat(val('gl-'+v)); if (isNaN(num)) { toast('Enter a number'); return; }
-      busy();
-      try { await rpc('log_goal', { p_token:tok, p_goal:v, p_day:today(), p_value:num }); await refresh(); toast('Logged'); } catch(e){ toast(errMsg(e)); }
-      break;
-    }
-    case 'rm-photo':
-      try { await rpc('set_photo', { p_token:tok, p_photo:null }); delete me.photo; toast('Photo removed'); } catch(e){ toast(errMsg(e)); }
-      break;
-    case 'a2hs': showA2hs(); return;
-    case 'a2hs-hide': try { localStorage.setItem(A2HS, '1'); } catch(e){} toast('You can still add it from the Progress tab'); break;
-    case 'copy-code': {
-      const msg = `Join my Locked In 50 crew 🔒 ${location.origin}  Crew code: ${S.group.code}`;
-      try { await navigator.clipboard.writeText(msg); toast('Invite copied. Paste it to your mates.'); } catch(e){ toast('Crew code: ' + S.group.code); }
+    case 'copy-invite': {
+      const msg = `Join my Locked In 50 crew "${CREW.name}" 🔒 ${inviteLink(CREW.code)}  (crew code ${CREW.code})`;
+      try { await navigator.clipboard.writeText(msg); toast('Invite copied. Paste it to your mates.'); } catch(e){ toast('Crew code: ' + CREW.code); }
       return;
     }
+    case 'rename-crew':
+      modal('Rename crew', `<input class="input" id="m-n" value="${esc(CREW.name)}" maxlength="30">`, 'Save', async (m) => {
+        try { await rpc('rename_crew', { p_token:tok(), p_crew:CREW.id, p_name:m.querySelector('#m-n').value }); await refresh(); render(); toast('Crew renamed'); }
+        catch(e){ toast(errMsg(e)); return false; }
+      }); return;
+    case 'new-code':
+      modal('Get a new code?', 'The current code and invite link will stop working. Everyone already in the crew stays in.', 'New code', async () => {
+        try { const r = await rpc('new_crew_code', { p_token:tok(), p_crew:CREW.id }); await refresh(); render(); toast('New code: ' + r.code); } catch(e){ toast(errMsg(e)); }
+      }); return;
+    case 'remove-member': {
+      const u = CREW.users[v];
+      modal(`Remove ${esc(u.name)}?`, `They'll be taken out of ${esc(CREW.name)}. Their own 50 days carry on.`, 'Remove', async () => {
+        try { await rpc('remove_member', { p_token:tok(), p_crew:CREW.id, p_account:v }); await refresh(); render(); toast('Removed'); } catch(e){ toast(errMsg(e)); }
+      }); return;
+    }
+    case 'leave-crew': {
+      const c = CREW, captain = c.captainId === ME.id, solo = c.members.length === 1;
+      modal(`Leave ${esc(c.name)}?`, solo ? 'You\'re the last one in, so the crew will close.' : captain ? 'Captaincy passes to the longest-standing member.' : 'You can rejoin later with the crew code.', 'Leave', async () => {
+        try { await rpc('leave_crew', { p_token:tok(), p_crew:c.id }); ui.crewId = null; await refresh(); render(); toast(`Left ${c.name}`); } catch(e){ toast(errMsg(e)); }
+      }); return;
+    }
+    case 'rm-photo':
+      try { await rpc('set_photo', { p_token:tok(), p_photo:null }); ME.photo = null; await loadCrew().catch(()=>{}); toast('Photo removed'); } catch(e){ toast(errMsg(e)); }
+      break;
+    case 'a2hs': showA2hs(); return;
+    case 'a2hs-hide': ls.set(A2HS, '1'); toast('You can still add it from the Progress tab'); break;
     case 'logout':
-      modal('Log out?', 'You can log back in any time with your crew code and PIN.', 'Log out', () => {
-        session = null; setSession(null); S = null; ui.view = 'welcome'; ui.tab = 'today'; render(); scrollTo(0,0);
+      modal('Log out?', 'You can log back in any time with your username and PIN.', 'Log out', () => {
+        session = null; setSession(null); ME = CREW = BOARD = null; ui.view = 'welcome'; ui.tab = 'today'; render(); scrollTo(0,0);
       }); return;
   }
   render();
 }
+async function logGoal(g, x){
+  try {
+    const r = await rpc('log_goal', { p_token:tok(), p_goal:g.id, p_day:today(), p_value:x });
+    await loadMe(); await loadCrew().catch(()=>{}); render();
+    toast(r.pct >= 100 ? '🎯 Goal hit! Massive.' : r.pb ? `🎉 New PB: ${gval(g, x)}` : 'Logged');
+  } catch(e){ toast(errMsg(e)); }
+}
 
 document.addEventListener('click', e => { const b = e.target.closest('[data-a]'); if (!b || b.disabled) return; act(b.dataset.a, b.dataset.v, b); });
-document.addEventListener('input', e => { const f = e.target.dataset.f; if (f && ui.draft) ui.draft.goals[+e.target.dataset.g][f] = e.target.type==='checkbox' ? e.target.checked : e.target.value; });
+document.addEventListener('input', e => {
+  const f = e.target.dataset.f, d = ui.draft; if (!d) return;
+  if (f && e.target.dataset.g != null) d.goals[+e.target.dataset.g][f] = e.target.type==='checkbox' ? e.target.checked : e.target.value;
+  else if (f && e.target.dataset.t != null) d.trackers[+e.target.dataset.t][f] = e.target.value;
+  else if (e.target.dataset.d) d[e.target.dataset.d] = e.target.value;
+});
 document.addEventListener('change', async e => {
   const id = e.target.id; if (id !== 'photo-in' && id !== 'j-photo') return;
   const f = e.target.files && e.target.files[0]; if (!f) return;
   try {
     const url = await toAvatar(f);
     if (id === 'j-photo') { ui.joinPhoto = url; const p = document.getElementById('j-prev'); if (p) p.innerHTML = `<img src="${url}" alt="">`; const t = document.getElementById('j-ptext'); if (t) t.textContent = 'Change photo'; }
-    else { await rpc('set_photo', { p_token: session.token, p_photo: url }); S.users[S.me].photo = url; render(); toast('Photo updated'); }
-  } catch(err) { toast("Couldn't read that image"); }
+    else { await rpc('set_photo', { p_token: tok(), p_photo: url }); ME.photo = url; await loadCrew().catch(()=>{}); render(); toast('Photo updated'); }
+  } catch(err) { toast("Couldn't save that image"); }
 });
 document.addEventListener('keydown', e => {
-  if (e.key !== 'Enter' || e.target.tagName === 'TEXTAREA') return;
+  if (e.key !== 'Enter' || e.target.tagName === 'TEXTAREA' || e.target.closest('#modal')) return;
   const id = e.target.id || '';
   if (id === 'add-item') { e.preventDefault(); act('add-item'); }
   else if (id.startsWith('c-')) act('comment', id.slice(2));
   else if (id.startsWith('gl-')) act('log', id.slice(3));
-  else if (id === 'l-pin') act('login');
-  else if (id === 'j-pin') act('join');
+  else if (id.startsWith('tk-')) act('log-tracker', id.slice(3));
+  else if (id === 'l-pin' || id === 'l-name') act('login');
+  else if (id === 'j-pin') act('account');
+  else if (id === 'cf-code') act('join-crew');
+  else if (id === 'cf-name') act('create-crew');
 });
 
-// Keep the crew feed fresh: every 30 seconds, and whenever the app comes back to the front.
+// Keep things fresh: every 30 seconds, and whenever the app comes back to the front.
 async function sync(){
-  if (!session || ui.loading || document.hidden) return;
+  if (!session || ui.loading || document.hidden || !ME) return;
   const ae = document.activeElement; if (ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA')) return;
+  if (document.getElementById('modal').classList.contains('show')) return;
   const y = scrollY; await refresh(); render(); scrollTo(0, y);
 }
 setInterval(sync, 30000);
 document.addEventListener('visibilitychange', sync);
 
-render();
-if (session) refresh().then(render);
+// Invite links: lockedin50.com/?join=CODE
+(async function boot(){
+  const jc = new URLSearchParams(location.search).get('join');
+  if (jc) {
+    history.replaceState(null, '', location.pathname);
+    ui.pendingJoin = { code: jc.toUpperCase() };
+    try { const c = await rpc('crew_preview', { p_code: jc }); ui.pendingJoin = { code: c.code, name: c.name }; }
+    catch(e){ ui.pendingJoin = null; toast(e.message === 'bad_code' ? "That invite link has expired. Ask for a new one." : errMsg(e)); }
+  }
+  render();
+  if (session) { await refresh(); render(); if (ui.pendingJoin && ME) offerPendingJoin(); }
+})();
+
 </script>
 </body>
 </html>
